@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阿德師傅 - 手機直式點餐菜單</title>
+    <style>
+        /* 核心手機直式優化：無左右滑動，大字級 */
+        body {
+            margin: 0;
+            font-family: "Segoe Script", "Apple Chancery", cursive, "Noto Sans TC", sans-serif;
+            background-color: #f0e6d2; /* 復古紙張顏色 */
+            color: #4a2f1c;
+            overflow-x: hidden; /* 防止橫向捲動 */
+        }
+        .menu-container {
+            max-width: 480px; /* 適合大手機屏幕 */
+            margin: 0 auto;
+            background-color: #f7f3e9; /* 表格顏色 */
+            border: 15px solid #a67c52; /* 紋理木板邊框 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            padding-bottom: 100px; /* 為固定購物車留出空間 */
+            position: relative;
+        }
+
+        /* Header 區塊 */
+        header {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        header img.logo {
+            width: 80px;
+            height: 80px;
+            display: block;
+            margin: 0 auto;
+        }
+        header h1 {
+            font-size: 24px;
+            margin: 10px 0 0;
+        }
+
+        /* 商品項目區塊 */
+        .menu-item {
+            padding: 20px;
+            border-bottom: 2px solid #a67c52;
+            overflow: hidden;
+        }
+        .item-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .item-header img {
+            width: 100px;
+            height: auto;
+            margin-right: 15px;
+            border-radius: 8px;
+        }
+        .item-header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        /* 客製化按鈕（大且防呆） */
+        .custom-options, .size-select, .pickup-select {
+            margin: 15px 0;
+        }
+        .custom-options label, .size-select label, .pickup-select label {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #e6dfc7;
+            border: 1px solid #a67c52;
+            margin-right: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            user-select: none;
+        }
+        .custom-options input:checked + label, .size-select input:checked + label, .pickup-select input:checked + label {
+            background-color: #a67c52;
+            color: #ffffff;
+            border-color: #4a2f1c;
+        }
+        .custom-options input, .size-select input, .pickup-select input {
+            display: none; /* 隱藏真實 input */
+        }
+
+        .item-description {
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .add-cart-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #4a2f1c;
+            color: #ffffff;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .add-cart-btn:active {
+            background-color: #2e1e12;
+        }
+
+        /* 項目規格（大/小）選擇 */
+        .size-select label {
+            width: 40%;
+            text-align: center;
+        }
+
+        /* 固定購物車底欄 (20px字體) */
+        .fixed-cart {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #4a2f1c;
+            color: #ffffff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+        .cart-details {
+            display: flex;
+            align-items: center;
+        }
+        .cart-details span {
+            margin-right: 10px;
+        }
+
+        /* 取餐方式按鈕（固定四字，大且防呆） */
+        .pickup-select {
+            margin: 0;
+            display: flex;
+        }
+        .pickup-select label {
+            width: 80px;
+            text-align: center;
+            background-color: #e6dfc7;
+            color: #4a2f1c;
+            border-color: #e6dfc7;
+            margin-left: 5px;
+        }
+        .pickup-select input:checked + label {
+            background-color: #ffffff;
+            color: #4a2f1c;
+            border-color: #ffffff;
+        }
+
+        .confirm-order-btn {
+            background-color: #ffffff;
+            color: #4a2f1c;
+            padding: 15px;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .confirm-order-btn:active {
+            background-color: #e0e0e0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="menu-container">
+        <!-- 模擬圖像 Header -->
+        <header>
+            <!-- 請將此處圖片URL替換為您生成的 Logo 圖像文件 -->
+            <img src="masterade_logo.png" alt="阿德師傅 Logo" class="logo">
+            <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
+        </header>
+
+        <!-- 商品 1: 烤豬 (大/小) -->
+        <section class="menu-item">
+            <div class="item-header">
+                <!-- 請將此處圖片URL替換為您生成的烤豬捲插圖文件 -->
+                <img src="porchetta_illustration.png" alt="Porchetta">
+                <h2>義式脆皮烤豬 / Italian Porchetta</h2>
+            </div>
+            
+            <p class="item-description">
+                傳承義大利百年傳統，外皮嘎嘣脆、肉質鮮嫩多汁！使用迷迭香與野茴香特製。
+            </p>
+
+            <!-- 項目規格選擇 -->
+            <div class="size-select">
+                <input type="radio" id="porchetta-large" name="porchetta-size" value="300" checked>
+                <label for="porchetta-large">(大) $300</label>
+                <input type="radio" id="porchetta-small" name="porchetta-size" value="200">
+                <label for="porchetta-small">(小) $200</label>
+            </div>
+
+            <!-- 客製化按鈕 -->
+            <div class="custom-options">
+                <input type="checkbox" id="porchetta-大辣" name="porchetta-大辣" value="大辣">
+                <label for="porchetta-大辣">[ 大辣 ]</label>
+                <input type="checkbox" id="porchetta-不要洋蔥" name="porchetta-不要洋蔥" value="不要洋蔥">
+                <label for="porchetta-不要洋蔥">[ 不要洋蔥 ]</label>
+            </div>
+
+            <button class="add-cart-btn" onclick="addToCart('Porchetta', this)">➕ 加入購物車</button>
+        </section>
+
+        <!-- 商品 2: 三明治 -->
+        <section class="menu-item">
+            <div class="item-header">
+                <!-- 請將此處圖片URL替換為您生成的三明治爆餡插圖文件 -->
+                <img src="sandwich_illustration.png" alt="La Dante Sandwich">
+                <h2>La Dante 但丁三明治</h2>
+            </div>
+
+            <p class="item-description">
+                Porchetta烤豬 / 芝麻葉 / 佛卡夏麵包。特製松露菌菇醬 & 佩科里諾起司醬組合。
+            </p>
+
+            <p class="item-description" style="font-weight: bold; font-size: 18px;">
+                單一售價: $170
+            </p>
+
+            <!-- 客製化按鈕 -->
+            <div class="custom-options">
+                <input type="checkbox" id="sandwich-大辣" name="sandwich-大辣" value="大辣">
+                <label for="sandwich-大辣">[ 大辣 ]</label>
+                <input type="checkbox" id="sandwich-醬汁分開" name="sandwich-醬汁分開" value="醬汁分開">
+                <label for="sandwich-醬汁分開">[ 醬汁分開 ]</label>
+            </div>
+
+            <button class="add-cart-btn" onclick="addToCart('La Dante', this)">➕ 加入購物車</button>
+        </section>
+        
+        <!-- 底部裝飾 -->
+        <section style="text-align: center; padding: 20px;">
+            <p style="font-style: italic;">Simple. Perfect.</p>
+        </section>
+
+    </div>
+
+    <!-- 固定購物車底欄 ( Fixed Bottom ) -->
+    <footer class="fixed-cart">
+        <div class="cart-details">
+            <span id="item-count">🛒 已點項目: 0 項</span>
+            <span id="total-price">總金額: $0</span>
+        </div>
+        
+        <div class="pickup-select">
+            <input type="radio" id="pickup-外帶" name="pickup-method" value="外帶" checked>
+            <label for="pickup-外帶">(外帶)</label>
+            <input type="radio" id="pickup-內用" name="pickup-method" value="內用">
+            <label for="pickup-內用">(內用)</label>
+        </div>
+
+        <button class="confirm-order-btn" onclick="confirmOrder()">🚀 確認點餐（產生出單編號）</button>
+    </footer>
+
+    <script>
+        // 前端模擬 JavaScript 交互
+        let cart = { items: [], total: 0 };
+        let currentOrderNumber = 0; // 模擬出單編號
+
+        // 模擬：將項目加入購物車並更新底欄
+        function addToCart(item, btn) {
+            let price = 0;
+            let size = "";
+            let customization = [];
+
+            if (item === 'Porchetta') {
+                price = parseInt(document.querySelector('input[name="porchetta-size"]:checked').value);
+                size = document.querySelector('input[name="porchetta-size"]:checked').id === 'porchetta-large' ? '(大)' : '(小)';
+                if (document.getElementById('porchetta-大辣').checked) customization.push('大辣');
+                if (document.getElementById('porchetta-不要洋蔥').checked) customization.push('不要洋蔥');
+            } else if (item === 'La Dante') {
+                price = 170;
+                size = "(常規)";
+                if (document.getElementById('sandwich-大辣').checked) customization.push('大辣');
+                if (document.getElementById('sandwich-醬汁分開').checked) customization.push('醬汁分開');
+            }
+
+            let cartItem = { item: item, size: size, price: price, customization: customization };
+            cart.items.push(cartItem);
+            cart.total += price;
+
+            updateCartDisplay();
+            
+            // 模擬按鈕反灰
+            btn.textContent = "已加入";
+            btn.style.backgroundColor = "#2e1e12";
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.textContent = "➕ 加入購物車";
+                btn.style.backgroundColor = "#4a2f1c";
+                btn.disabled = false;
+            }, 1000); // 1秒後恢復
+        }
+
+        // 更新購物車底欄顯示
+        function updateCartDisplay() {
+            document.getElementById('item-count').textContent = `🛒 已點項目: ${cart.items.length} 項`;
+            document.getElementById('total-price').textContent = `總金額: $${cart.total}`;
+        }
+
+        // 模擬：確認點餐，產生出單編號
+        function confirmOrder() {
+            if (cart.items.length === 0) {
+                alert("購物車是空的，請先加入項目！");
+                return;
+            }
+
+            currentOrderNumber++;
+            let pickupMethod = document.querySelector('input[name="pickup-method"]:checked').value;
+            let formattedOrderNumber = String(currentOrderNumber).padStart(3, '0');
+
+            // 模擬將資料傳送至雲端/主廚看板，並寫入 Google Sheets
+            let orderData = {
+                orderNumber: formattedOrderNumber,
+                pickupMethod: pickupMethod,
+                cart: cart,
+                // 此處將模擬傳送動作
+            };
+
+            console.log("模擬送出訂單資料:", orderData);
+
+            // 模擬客人端畫面
+            alert(`點餐成功！您的編號為 #${formattedOrderNumber}\n取餐方式: (${pickupMethod})\n請依編號至餐車取餐。`);
+            
+            // 模擬打烊時查看 Google Sheets 自動入帳一筆 $470
+            
+            // 模擬主廚看板立刻跳出 #001
+            
+            // 重置購物車
+            cart = { items: [], total: 0 };
+            updateCartDisplay();
+            // 重置客製化選項
+            document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
+            
+        }
+
+    </script>
+</body>
+</html>
