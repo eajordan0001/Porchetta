@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     
     <style>
-        /* 📐 強制全螢幕鎖定，不允許整頁上下亂滾動 */
+        /* 📐 強制全螢幕鎖定，不允許整個大網頁上下亂滾動 */
         html, body {
             margin: 0;
             padding: 0;
@@ -36,7 +36,7 @@
             flex-shrink: 0;
         }
 
-        /* 控制列固定不縮放 */
+        /* 控制列 */
         .controls {
             display: flex;
             justify-content: space-between;
@@ -59,7 +59,7 @@
             font-size: 13px;
         }
 
-        /* 📐 核心修復：強制彈性垂直分配，剛好塞滿一個螢幕 */
+        /* 📐 主容器：用彈性盒模型控制各區塊高度 */
         .dashboard-container {
             display: flex;
             flex-direction: column;
@@ -69,7 +69,7 @@
         }
 
         /* ==========================================
-           【區域一：佔 50% 高度的點單明細】
+           【區域一：點單明細 (聚焦當前兩單，其餘往上推)】
            ========================================== */
         .section-details {
             background-color: #ffffff;
@@ -79,20 +79,20 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             box-sizing: border-box;
             
-            flex: 50; /* 分配 50% */
+            flex: 1; /* 彈性分配，自動填滿剩餘空間 */
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* 防止撐破外框 */
+            overflow: hidden; 
         }
         .section-details h2 {
-            font-size: 16px;
+            font-size: 15px;
             margin: 0 0 8px 0;
             color: #a67c52;
             border-bottom: 1px dashed #a67c52;
             padding-bottom: 3px;
             flex-shrink: 0;
         }
-        /* 讓訂單列表自己在這裡面滾動 */
+        /* 🛠️ 透過限制高度與滾動，讓新單置頂，舊單自動在下方等待被推上來 */
         #orders-container {
             flex: 1;
             overflow-y: auto; 
@@ -154,7 +154,7 @@
         }
 
         /* ==========================================
-           【區域二：佔 15% 高度的數據統計】
+           【區域二：數據統計】
            ========================================== */
         .section-stats {
             background-color: #ffffff;
@@ -165,40 +165,67 @@
             justify-content: space-around;
             align-items: center;
             box-sizing: border-box;
-            
-            flex: 15; /* 分配 15% 高度 */
-            flex-shrink: 0;
+            flex-shrink: 0; /* 固定高度，不被擠壓 */
         }
         .stat-box { text-align: center; }
         .stat-box .title { font-size: 12px; color: #666; }
         .stat-box .num { font-size: 20px; font-weight: bold; color: #4a2f1c; margin-top: 2px; }
 
         /* ==========================================
-           【區域三：佔 35% 高度的歷史流水帳】
+           【區域三：歷史流水帳 (全新折疊抽屜設計，修正無法滾動 Bug)】
            ========================================== */
         .section-history {
             background-color: #e6dfc7;
             border-radius: 8px;
             padding: 10px;
             box-sizing: border-box;
-            
-            flex: 35; /* 分配 35% */
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 40px; /* 🛠️ 預設高度只顯示標題列 */
         }
-        .section-history h2 {
-            font-size: 15px;
-            margin: 0 0 6px 0;
+        /* 當被加上 .expanded 類別時，才展開完整版面 */
+        .section-history.expanded {
+            max-height: 40vh; /* 展開時最多佔據螢幕 40% 的高度 */
+        }
+        
+        /* 點擊觸發區域 */
+        .history-toggle-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
             flex-shrink: 0;
         }
-        /* 歷史表格專屬滾動區 */
+        .history-toggle-header h2 {
+            font-size: 15px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle-icon {
+            font-size: 13px;
+            background-color: #4a2f1c;
+            color: #ffffff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* 歷史表格專屬內部滾動區 */
         .table-scroll {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: auto; /* 只有展開後內部才可以自由滾動 */
+            margin-top: 8px;
+            display: none; /* 預設隱藏表格內容 */
         }
+        .section-history.expanded .table-scroll {
+            display: block; /* 展開時秀出表格 */
+        }
+
         .history-table {
             width: 100%;
             border-collapse: collapse;
@@ -206,7 +233,7 @@
             table-layout: fixed;
         }
         .history-table th, .history-table td {
-            padding: 5px 2px;
+            padding: 6px 4px;
             text-align: left;
             border-bottom: 1px solid #b5a88f;
             overflow: hidden;
@@ -227,7 +254,7 @@
     <div class="dashboard-container">
         
         <div class="section-details">
-            <h2>📋 當前接單明細 (新單置頂，超出版面可滾動)</h2>
+            <h2>📋 當前接單明細 (最新單置頂，其餘在下方往上推進)</h2>
             <div id="orders-container">正在下載最新出單資料...</div>
         </div>
 
@@ -246,8 +273,15 @@
             </div>
         </div>
 
-        <div class="section-history">
-            <h2><span>📜 歷史出單流水帳</span> <span id="history-count" style="font-size: 12px; color:#555;">共 0 筆</span></h2>
+        <div class="section-history" id="historySection">
+            <div class="history-toggle-header" onclick="toggleHistoryDrawer()">
+                <h2>
+                    <span>📜 歷史出單流水帳</span> 
+                    <span id="history-count" style="font-size: 12px; color:#555; font-weight: normal;">共 0 筆</span>
+                </h2>
+                <div class="toggle-icon" id="toggleLabel">點開對帳 🔼</div>
+            </div>
+            
             <div class="table-scroll">
                 <table class="history-table">
                     <thead>
@@ -272,8 +306,28 @@
         const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-        // 💡 避開資料庫 RLS 封鎖：改用本地端瀏覽器記憶體儲存「已完成的訂單 ID」
+        // 避開資料庫 RLS 封鎖：改用本地端瀏覽器記憶體儲存「已完成的訂單 ID」
         let completedOrderIds = JSON.parse(localStorage.getItem('completed_orders') || '[]');
+
+        // 🛠️ 歷史流水帳展開/收合切換功能
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('historySection');
+            const label = document.getElementById('toggleLabel');
+            
+            if (drawer.classList.contains('expanded')) {
+                drawer.classList.remove('expanded');
+                label.textContent = "點開對帳 🔼";
+            } else {
+                drawer.classList.add('expanded');
+                label.textContent = "點擊收合 🔽";
+                
+                // 展開時自動滾動到底部，方便老闆看最新流水帳
+                setTimeout(() => {
+                    const scrollBox = drawer.querySelector('.table-scroll');
+                    scrollBox.scrollTop = 0;
+                }, 100);
+            }
+        }
 
         async function fetchOrders() {
             try {
@@ -322,8 +376,6 @@
 
             orders.forEach(order => {
                 const formattedNum = String(order.id).padStart(3, '0');
-                
-                // 💡 判斷方式：如果這個 ID 存在於我們本地的完成清單中，它就是已過單
                 const isFinished = completedOrderIds.includes(order.id);
 
                 if (isFinished) {
@@ -356,7 +408,6 @@
                 if (!isFinished) {
                     actionButtonHtml = `<button class="action-btn" onclick="localMarkAsComplete(${order.id})">✔️ 完成出餐</button>`;
                 } else {
-                    // 🎯 成功交易標籤 (20px 四字等寬固定寬度，絕不走樣)
                     actionButtonHtml = `<span class="status-label" style="color: #16a34a;">交易成功</span>`;
                 }
 
@@ -396,7 +447,6 @@
             document.getElementById('history-count').textContent = `共 ${orders.length} 筆`;
         }
 
-        // 💡 點擊按鈕改記在手機本地瀏覽器裡，完美繞過 RLS 錯誤！
         function localMarkAsComplete(orderId) {
             if (!completedOrderIds.includes(orderId)) {
                 completedOrderIds.push(orderId);
