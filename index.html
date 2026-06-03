@@ -7,8 +7,6 @@
     
     <link rel="manifest" href="manifest.json">
     
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    
     <style>
         /* 核心手機直式優化：無左右滑動，大字級 */
         body {
@@ -238,31 +236,20 @@
     </footer>
 
     <script>
-        // 暴力清除舊 PWA 死鎖快取，確保必定載入最新版
+        // 強制解綁 PWA 快取，確保每一次都是全新載入
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(registrations => {
                 for (let registration of registrations) { registration.unregister(); }
             });
         }
 
-        // 初始化 Supabase
-        const SUPABASE_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
-        let supabase = null;
-
-        try {
-            // 由於頂部已經同步載入套件，這裡可以直接秒速初始化
-            if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            } else if (typeof supabase !== 'undefined') {
-                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
-        } catch (e) {
-            console.error("Supabase 初始化失敗:", e);
-        }
+        // 🟢 改用原生 Rest API 配置
+        const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
+        const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
         let cart = { items: [], total: 0 };
 
+        // 🛒 絕不卡死的在地累加函式
         function chefAddToCart(item, btn) {
             try {
                 let price = 0;
@@ -316,16 +303,8 @@
             if (elTotal) elTotal.textContent = `總金額: $${cart.total}`;
         }
 
+        // 🚀 使用瀏覽器內建 fetch 直連資料庫，免疫任何網路干擾
         async function confirmOrder() {
-            // 重新嘗試兜底初始化，防止萬一
-            if (!supabase && window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
-
-            if (!supabase) {
-                alert("連線依然受阻，請檢查手機是否開啟阻擋廣告套件(AdBlock)，或嘗試切換成4G/5G網路！");
-                return;
-            }
             if (cart.items.length === 0) {
                 alert("購物車是空的，請先加入項目！");
                 return;
@@ -337,25 +316,37 @@
             };
 
             try {
-                const { data, error } = await supabase
-                    .from('orders')
-                    .insert([orderData])
-                    .select();
+                // 使用原生 Fetch 送出訂單，並要求回傳(return=representation)以取得 ID
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': API_KEY,
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation' 
+                    },
+                    body: JSON.stringify(orderData)
+                });
 
-                if (error) throw error;
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(errText);
+                }
 
+                const data = await response.json();
                 const dbId = data[0].id;
                 const formattedOrderNumber = String(dbId).padStart(3, '0');
 
                 alert(`點餐成功！您的編號為 #${formattedOrderNumber}\n請依編號至餐車取餐。`);
                 
+                // 成功後清空
                 cart = { items: [], total: 0 };
                 updateCartDisplay();
                 document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
 
             } catch (err) {
-                console.error("Supabase 寫入錯誤:", err);
-                alert("點餐失敗，請確認資料庫 orders 表是否允許匿名寫入(RLS Insert)！");
+                console.error("資料庫寫入錯誤:", err);
+                alert("點餐失敗，請確認資料庫 orders 表的 RLS 權限已允許匿名寫入(Insert)！");
             }
         }
     </script>
