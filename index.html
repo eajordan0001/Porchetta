@@ -3,368 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>阿德師傅 - 手機直式點餐菜單 (強制重啟版)</title>
-    
-    <link rel="manifest" href="manifest.json">
-    
+    <title>阿德師傅 - 純在地極簡測試版</title>
     <style>
-        /* 核心手機直式優化：無左右滑動，大字級 */
-        body {
-            margin: 0;
-            font-family: "Segoe Script", "Apple Chancery", cursive, "Noto Sans TC", sans-serif;
-            background-color: #f0e6d2; 
-            color: #4a2f1c;
-            overflow-x: hidden; 
-        }
-        .menu-container {
-            max-width: 480px; 
-            margin: 0 auto;
-            background-color: #f7f3e9; 
-            border: 15px solid #a67c52; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            padding-bottom: 120px; 
-            position: relative;
-        }
-
-        /* Header 區塊 */
-        header {
-            text-align: center;
-            padding: 20px;
-            background-color: #ffffff;
-        }
-        header .logo-placeholder {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            font-size: 12px;
-            color: #666;
-        }
-        header h1 {
-            font-size: 24px;
-            margin: 10px 0 0;
-        }
-
-        /* 商品項目區塊 */
-        .menu-item {
-            padding: 20px;
-            border-bottom: 2px solid #a67c52;
-            overflow: hidden;
-        }
-        .item-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .item-header .img-placeholder {
-            width: 100px;
-            height: 100px;
-            margin-right: 15px;
-            border-radius: 8px;
-            background-color: #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #666;
-        }
-        .item-header h2 {
-            font-size: 20px;
-            margin: 0;
-        }
-
-        /* 客製化按鈕 */
-        .custom-options, .size-select {
-            margin: 15px 0;
-        }
-        .custom-options label, .size-select label {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #e6dfc7;
-            border: 1px solid #a67c52;
-            margin-right: 5px;
-            cursor: pointer;
-            border-radius: 4px;
-            user-select: none;
-        }
-        .custom-options input:checked + label, .size-select input:checked + label {
-            background-color: #a67c52;
-            color: #ffffff;
-            border-color: #4a2f1c;
-        }
-        .custom-options input, .size-select input {
-            display: none; 
-        }
-
-        .item-description {
-            font-size: 16px;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-
-        .add-cart-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background-color: #4a2f1c;
-            color: #ffffff;
-            border: none;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .add-cart-btn:active {
-            background-color: #2e1e12;
-        }
-
-        .size-select label {
-            width: 40%;
-            text-align: center;
-        }
-
-        /* 固定購物車底欄 (20px字體) */
-        .fixed-cart {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #4a2f1c;
-            color: #ffffff;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-        .cart-details {
-            display: flex;
-            flex-direction: column; 
-            align-items: flex-start;
-        }
-        .cart-details span {
-            margin-bottom: 5px;
-        }
-
-        .confirm-order-btn {
-            background-color: #ffffff;
-            color: #4a2f1c;
-            padding: 15px;
-            border: none;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .confirm-order-btn:active {
-            background-color: #e0e0e0;
-        }
+        body { margin: 0; font-family: sans-serif; background-color: #f0e6d2; color: #4a2f1c; padding: 20px; }
+        .menu-container { max-width: 480px; margin: 0 auto; background: #f7f3e9; border: 5px solid #a67c52; padding: 15px; }
+        .menu-item { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .add-cart-btn { display: block; width: 100%; padding: 15px; background: #4a2f1c; color: white; border: none; font-size: 18px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .fixed-cart { position: fixed; bottom: 0; left: 0; width: 100%; background: #4a2f1c; color: white; padding: 15px; font-size: 20px; display: flex; justify-content: space-between; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div class="menu-container">
-        <header>
-            <div class="logo-placeholder">LOGO</div>
-            <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
-        </header>
-
-        <section class="menu-item">
-            <div class="item-header">
-                <div class="img-placeholder">Porchetta 圖</div>
-                <h2>義式脆皮烤豬 / Italian Porchetta</h2>
-            </div>
-            <p class="item-description">
-                傳承義大利百年傳統，外皮嘎嘣脆、肉質鮮嫩多汁！使用迷迭香與野茴香特製。
-            </p>
-            <div class="size-select">
-                <input type="radio" id="porchetta-large" name="porchetta-size" value="300" checked>
-                <label for="porchetta-large">(大) $300</label>
-                <input type="radio" id="porchetta-small" name="porchetta-size" value="200">
-                <label for="porchetta-small">(小) $200</label>
-            </div>
-            <div class="custom-options">
-                <input type="checkbox" id="porchetta-辣" name="porchetta-辣" value="大辣">
-                <label for="porchetta-辣">[ 大辣 ]</label>
-                <input type="checkbox" id="porchetta-洋蔥" name="porchetta-洋蔥" value="不要洋蔥">
-                <label for="porchetta-洋蔥">[ 不要洋蔥 ]</label>
-            </div>
-            <button class="add-cart-btn" data-product="Porchetta">➕ 加入購物車</button>
-        </section>
-
-        <section class="menu-item">
-            <div class="item-header">
-                <div class="img-placeholder">Buting 圖</div>
-                <h2>La Dante 但丁三明治</h2>
-            </div>
-            <p class="item-description">
-                Porchetta烤豬 / 芝麻葉 / 佛卡夏麵包。特製松露菌菇醬 & 佩科里諾起司醬組合。
-            </p>
-            <p class="item-description" style="font-weight: bold; font-size: 18px;">
-                單一售價: $170
-            </p>
-            <div class="custom-options">
-                <input type="checkbox" id="sandwich-辣" name="sandwich-辣" value="大辣">
-                <label for="sandwich-辣">[ 大辣 ]</label>
-                <input type="checkbox" id="sandwich-醬汁" name="sandwich-醬汁" value="醬汁分開">
-                <label for="sandwich-醬汁">[ 醬汁分開 ]</label>
-            </div>
-            <button class="add-cart-btn" data-product="La Dante Sandwich">➕ 加入購物車</button>
-        </section>
-        
-        <section style="text-align: center; padding: 20px;">
-            <p style="font-style: italic;">Simple. Perfect.</p>
-        </section>
+    <!-- 🚨 強制核心除錯：最上層直接放一粒傳統 onClick 按鈕當對照組 -->
+    <div style="background: red; color: white; padding: 10px; text-align: center; margin-bottom: 20px; font-weight: bold; border-radius: 4px;" 
+         onclick="alert('傳統 HTML 點擊成功！代表網頁沒有凍結！')">
+         防呆測試：點擊此處測試網頁是否凍結
     </div>
 
-    <footer class="fixed-cart">
-        <div class="cart-details">
-            <span id="item-count">🛒 已點項目: 0 項</span>
-            <span id="total-price">總金額: $0</span>
+    <div class="menu-container">
+        <h2>阿德師傅餐車 (在地測試版)</h2>
+        
+        <div class="menu-item">
+            <h3>義式脆皮烤豬 ($300)</h3>
+            <button class="add-cart-btn" onclick="testAddToCart(300, this)">➕ 加入購物車</button>
         </div>
-        <button class="confirm-order-btn" id="submit-order-btn">🚀 確認點餐（產生出單編號）</button>
-    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <div class="menu-item">
+            <h3>但丁三明治 ($170)</h3>
+            <button class="add-cart-btn" onclick="testAddToCart(170, this)">➕ 加入購物車</button>
+        </div>
+    </div>
+
+    <div class="fixed-cart">
+        <span id="test-count">🛒 已點項目: 0 項</span>
+        <span id="test-total">總金額: $0</span>
+    </div>
+
     <script>
-        // PWA Service Worker 註冊
+        // 🛑 1. 暴力清除所有可能死鎖的 PWA 快取與 Service Worker
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW未註冊', err));
-            });
-        }
-
-        // 初始化 Supabase 
-        const SUPABASE_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
-        let supabase;
-        try {
-            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch (e) {
-            console.error("Supabase 初始化失敗:", e);
-        }
-
-        let cart = { items: [], total: 0 };
-
-        // 🛠️ 綁定按鈕點擊事件監聽（最穩定的底層寫法）
-        document.addEventListener('DOMContentLoaded', () => {
-            // 抓取所有的「加入購物車」按鈕
-            const buttons = document.querySelectorAll('.add-cart-btn');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const productName = btn.getAttribute('data-product');
-                    chefAdeAddProduct(productName, btn);
-                });
-            });
-
-            // 抓取「確認點餐」按鈕
-            const submitBtn = document.getElementById('submit-order-btn');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', confirmOrder);
-            }
-        });
-
-        // 🛠️ 全新獨立命名的點餐主功能，徹底跟舊快取切斷關係
-        function chefAdeAddProduct(item, btn) {
-            try {
-                let price = 0;
-                let size = "";
-                let customization = [];
-                
-                if (item === 'Porchetta') {
-                    const largeRadio = document.getElementById('porchetta-large');
-                    if (largeRadio && largeRadio.checked) {
-                        price = 300;
-                        size = "(大份)";
-                    } else {
-                        price = 200;
-                        size = "(小份)";
-                    }
-                    
-                    const elSpicy = document.getElementById('porchetta-辣');
-                    const elOnion = document.getElementById('porchetta-洋蔥');
-                    if (elSpicy && elSpicy.checked) customization.push('大辣');
-                    if (elOnion && elOnion.checked) customization.push('不要洋蔥');
-                    
-                } else if (item === 'La Dante Sandwich') {
-                    price = 170;
-                    size = "(常規)";
-                    const elSandSpicy = document.getElementById('sandwich-辣');
-                    const elSandSauce = document.getElementById('sandwich-醬汁');
-                    if (elSandSpicy && elSandSpicy.checked) customization.push('大辣');
-                    if (elSandSauce && elSandSauce.checked) customization.push('醬汁分開');
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister().then(js => console.log('強制登出舊SW成功'));
                 }
+            });
+        }
 
-                let cartItem = { item: item, size: size, price: price, customization: customization };
-                cart.items.push(cartItem);
-                cart.total += price;
+        // 🛑 2. 一載入立刻彈窗，確認手機有沒有吃到這一版
+        window.onload = function() {
+            alert("【最新極簡測試版】已成功載入！如果點按鈕還是沒反應，請看下方叮嚀。");
+        };
 
-                // 更新畫面
-                updateCartDisplay();
-                
-                // 按鈕視覺反饋
+        let testCart = { count: 0, total: 0 };
+
+        // 🛑 3. 最純粹的計算與畫面更新
+        function testAddToCart(price, btn) {
+            try {
+                testCart.count += 1;
+                testCart.total += price;
+
+                // 直接更新畫面
+                document.getElementById('test-count').textContent = `🛒 已點項目: ${testCart.count} 項`;
+                document.getElementById('test-total').textContent = `總金額: $${testCart.total}`;
+
                 if (btn) {
-                    btn.textContent = "已加入！";
+                    btn.textContent = "核心成功！";
                     setTimeout(() => { btn.textContent = "➕ 加入購物車"; }, 1000);
                 }
-
-            } catch (error) {
-                alert("執行發生錯誤: " + error.message);
-            }
-        }
-
-        function updateCartDisplay() {
-            const elCount = document.getElementById('item-count');
-            const elTotal = document.getElementById('total-price');
-            if (elCount) elCount.textContent = `🛒 已點項目: ${cart.items.length} 項`;
-            if (elTotal) elTotal.textContent = `總金額: $${cart.total}`;
-        }
-
-        async function confirmOrder() {
-            if (!supabase) {
-                alert("資料庫連線未建立，請檢查網路連線！");
-                return;
-            }
-            if (cart.items.length === 0) {
-                alert("購物車是空的，請先加入項目！");
-                return;
-            }
-
-            const orderData = {
-                total_price: cart.total,
-                items: cart.items 
-            };
-
-            try {
-                const { data, error } = await supabase
-                    .from('orders')
-                    .insert([orderData])
-                    .select();
-
-                if (error) throw error;
-
-                const dbId = data[0].id;
-                const formattedOrderNumber = String(dbId).padStart(3, '0');
-
-                alert(`點餐成功！您的編號為 #${formattedOrderNumber}\n請依編號至餐車取餐。`);
-                
-                cart = { items: [], total: 0 };
-                updateCartDisplay();
-                document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
-
             } catch (err) {
-                console.error("Supabase 寫入錯誤:", err);
-                alert("點餐失敗，請確認資料庫 orders 是否已建立，且 RLS 設定已關閉！");
+                alert("點擊觸發了，但更新畫面失敗: " + err.message);
             }
         }
     </script>
