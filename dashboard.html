@@ -8,7 +8,6 @@
     <link rel="manifest" href="manifest.json">
     
     <style>
-        /* 🔓 解除全螢幕鎖死！讓整頁可以自然滾動，確保看得到最頂與最底 */
         html, body {
             margin: 0;
             padding: 0;
@@ -18,7 +17,7 @@
             background-color: #f0e6d2;
             color: #4a2f1c;
             box-sizing: border-box;
-            overflow-y: auto; /* 允許垂直滾動 */
+            overflow-y: auto;
         }
 
         body {
@@ -27,7 +26,6 @@
             padding: 10px;
         }
 
-        /* 頂部標題與時間整合列 */
         .header-wrapper {
             display: flex;
             flex-direction: column;
@@ -42,12 +40,11 @@
             margin: 0;
         }
         
-        /* 🕒 霸氣放大版數字時鐘樣式 */
         .live-clock {
-            font-size: 18px; /* 大幅放大字體 */
-            font-weight: 900; /* 極粗體 */
+            font-size: 18px;
+            font-weight: 900;
             color: #ffffff;
-            background-color: #4a2f1c; /* 改用深色背景更醒目 */
+            background-color: #4a2f1c;
             padding: 4px 15px;
             border-radius: 6px;
             margin-top: 6px;
@@ -77,7 +74,24 @@
             font-size: 13px;
         }
 
-        /* 主容器佈局 */
+        /* 🚀 收攤結帳超顯眼按鈕區域 */
+        .settle-wrapper {
+            margin: 5px 0 10px 0;
+        }
+        .settle-btn {
+            background: linear-gradient(135deg, #e11d48, #be123c); /* 霸氣有質感的紅色 */
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(190, 18, 60, 0.2);
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
         .dashboard-container {
             display: flex;
             flex-direction: column;
@@ -85,16 +99,12 @@
             gap: 10px;
         }
 
-        /* ==========================================
-           【區域一：優化黃金比例金字塔明細區】
-           ========================================== */
         .section-details {
             background-color: #ffffff;
             border: 3px solid #a67c52;
             border-radius: 8px;
             padding: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            box-sizing: border-box;
         }
         .section-details h2 {
             font-size: 14px;
@@ -103,11 +113,7 @@
             border-bottom: 1px dashed #a67c52;
             padding-bottom: 4px;
         }
-        #orders-container {
-            width: 100%;
-        }
 
-        /* 👑 金字塔動態階梯卡片（黃金比例微縮版，不臃腫） */
         .order-card {
             background: #f7f3e9;
             border-left: 6px solid #d97706;
@@ -116,19 +122,17 @@
             box-sizing: border-box;
         }
         
-        /* 🥇 置頂第一張待做單（精緻放大版） */
         .card-rank-0 {
             border-left-width: 9px;
             background: #fffdf5;
             border-color: #dc2626;
-            padding: 10px 12px; /* 縮減上下間距 */
+            padding: 10px 12px;
             box-shadow: 0 3px 6px rgba(220,38,38,0.1);
         }
         .card-rank-0 .order-header { font-size: 17px; color: #dc2626; }
         .card-rank-0 .order-items-list { font-size: 14.5px; line-height: 1.4; }
         .card-rank-0 .order-item-note { font-size: 13px; padding: 4px 6px; }
 
-        /* 🥈 第二張待做單（適中版） */
         .card-rank-1 {
             border-left-width: 6px;
             background: #faf7f0;
@@ -139,7 +143,6 @@
         .card-rank-1 .order-items-list { font-size: 13.5px; }
         .card-rank-1 .order-item-note { font-size: 12px; }
 
-        /* 🥉 之後的單（小巧預告版） */
         .card-rank-rest {
             border-left-width: 4px;
             background: #f3eee1;
@@ -150,7 +153,6 @@
         .card-rank-rest .order-items-list { font-size: 12.5px; margin: 2px 0; }
         .card-rank-rest .order-item-note { font-size: 11px; padding: 2px 4px; }
 
-        /* 完成過單樣式 */
         .order-card.status-success {
             border-left-color: #16a34a !important;
             background: #f0fdf4 !important;
@@ -196,9 +198,6 @@
             border-radius: 4px;
         }
 
-        /* ==========================================
-           【區域二：數據統計區】
-           ========================================== */
         .section-stats {
             background-color: #ffffff;
             border: 2px solid #a67c52;
@@ -214,15 +213,12 @@
         .stat-box .title { font-size: 12px; color: #666; }
         .stat-box .num { font-size: 18px; font-weight: bold; color: #4a2f1c; margin-top: 1px; }
 
-        /* ==========================================
-           【區域三：彈出式歷史流水帳抽屜（完美相容自由滾動）】
-           ========================================== */
         .drawer-toggle-btn {
             background-color: #4a2f1c;
             color: #fffdf5;
             width: 100%;
             border: none;
-            padding: 12px 0; /* 加大好點選 */
+            padding: 12px 0;
             font-size: 15px;
             font-weight: bold;
             text-align: center;
@@ -240,17 +236,16 @@
             background-color: #e6dfc7;
             box-sizing: border-box;
             width: 100%;
-            height: 0px; /* 預設收合 */
+            height: 0px;
             overflow: hidden;
             transition: height 0.3s ease;
             display: flex;
             flex-direction: column;
             border-left: 1px solid #a67c52;
             border-right: 1px solid #a67c52;
-            margin-bottom: 20px; /* 底部留白緩衝，防止被手機工具列擋住 */
+            margin-bottom: 30px;
         }
         
-        /* 打開時的高度 */
         .section-history.open {
             height: 250px;
             padding: 6px;
@@ -293,6 +288,10 @@
     <div class="header-wrapper">
         <h1>👨‍🍳 阿德師傅 - 即時出單系統</h1>
         <div class="live-clock" id="current-time">2026-01-01 00:00:00</div>
+    </div>
+
+    <div class="settle-wrapper">
+        <button class="settle-btn" onclick="exportDailyReport()">💰 點我完成今日出車結帳 (自動加總匯出報表)</button>
     </div>
 
     <div class="controls">
@@ -349,9 +348,17 @@
         const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-        let completedOrderIds = JSON.parse(localStorage.getItem('completed_orders') || '[]');
+        // 🔄 智慧防護網：檢查日期，若換天了，自動洗掉昨天的舊紀錄，單號重頭計算！
+        const todayStr = new Date().toLocaleDateString('zh-TW'); 
+        const savedDate = localStorage.getItem('dashboard_date');
+        if (savedDate !== todayStr) {
+            localStorage.removeItem('completed_orders');
+            localStorage.setItem('dashboard_date', todayStr);
+        }
 
-        // 🕒 霸氣大時間同步時鐘
+        let completedOrderIds = JSON.parse(localStorage.getItem('completed_orders') || '[]');
+        let currentFetchedOrders = []; // 快取當下的訂單陣列，供匯出報表使用
+
         function updateClock() {
             const now = new Date();
             const year = now.getFullYear();
@@ -367,7 +374,6 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 流水帳開合
         function toggleHistoryDrawer() {
             const drawer = document.getElementById('history-drawer');
             const btnText = document.getElementById('btn-text');
@@ -378,7 +384,6 @@
             } else {
                 drawer.classList.add('open');
                 btnText.textContent = '收起對帳流水帳';
-                // 打開時，自動幫網頁平滑滾動到最底部，確保抽屜完整呈現
                 setTimeout(() => {
                     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                 }, 100);
@@ -400,9 +405,9 @@
                 });
 
                 if (!response.ok) throw new Error("後台讀取失敗");
-                const orders = await response.json();
+                currentFetchedOrders = await response.json();
 
-                renderDashboard(orders);
+                renderDashboard(currentFetchedOrders);
 
                 document.getElementById('sync-status').textContent = '● 即時連線中';
                 document.getElementById('sync-status').style.color = 'green';
@@ -516,6 +521,59 @@
                 localStorage.setItem('completed_orders', JSON.stringify(completedOrderIds));
             }
             fetchOrders();
+        }
+
+        // 📊 核心新功能：一鍵自動加總、生成並下載營業 Excel 表格
+        function exportDailyReport() {
+            // 過濾出今天真正「完成交易」的單子
+            let finishedOrders = currentFetchedOrders.filter(o => completedOrderIds.includes(o.id));
+            
+            if (finishedOrders.length === 0) {
+                alert("目前今日尚無已完成出餐的訂單，無法結帳喔！");
+                return;
+            }
+
+            let totalSum = 0;
+            // 建立 CSV 內容表頭，加了 BOM (\uFEFF) 確保手機用 Excel 開啟不變亂碼
+            let csvContent = "\uFEFF單號,點餐詳細內容,每單金額\n";
+
+            finishedOrders.forEach(order => {
+                const formattedNum = String(order.id).padStart(3, '0');
+                totalSum += order.total_price;
+
+                // 組合詳細品項與備註，用空白隔開
+                let itemSummary = "";
+                if (Array.isArray(order.items)) {
+                    itemSummary = order.items.map(i => {
+                        let details = `${i.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'}(${i.size || '原尺寸'})`;
+                        if (i.customization && i.customization.length > 0) details += `[${i.customization.join(' ')}]`;
+                        if (i.note) details += `[備註:${i.note}]`;
+                        return details;
+                    }).join(' + ');
+                }
+
+                // 寫入一行資料，品項用引號包起來防範逗號干擾格式
+                csvContent += `#${formattedNum},"${itemSummary}",$${order.total_price}\n`;
+            });
+
+            // 在最底下自動加總
+            csvContent += `\n本日總結算金額,,, $${totalSum}\n`;
+            csvContent += `總成交筆數,,, ${finishedOrders.length} 筆\n`;
+
+            // 產生檔案下載連結
+            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            
+            // 用當下日期來當檔名，好整理不混淆
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `阿德師傅營業報表_${dateStr}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert(`🎉 結帳成功！\n本日營收總計: $${totalSum}\n營業表格已自動下載至手機檔案中！`);
         }
 
         setInterval(fetchOrders, 6000);
