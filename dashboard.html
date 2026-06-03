@@ -98,7 +98,6 @@
             gap: 10px;
         }
 
-        /* 📐 精簡縮小版：明細框框優化 */
         .section-details {
             background-color: #ffffff;
             border: 3px solid #a67c52;
@@ -114,15 +113,17 @@
             padding-bottom: 4px;
         }
 
-        /* 📱 設定最大高度限制與獨立滾動：讓第 4 筆之後的單可以往下滾動檢視 */
+        /* 🛠️ 【除錯關鍵 1】優化滾動容器：精準調降最大高度，卡死在 3 筆單的空間 */
         #orders-container {
             width: 100%;
-            max-height: 380px; /* 大約是 3 筆單的黃金總高度 */
-            overflow-y: auto; /* 允許垂直方向滾動 */
+            max-height: 310px; /* 調低高度，強制讓第 4 筆溢出產生滾動 */
+            overflow-y: scroll; /* 強制啟動滾動軸檢視 */
+            -webkit-overflow-scrolling: touch; /* 讓手機用手指滑動時更順暢 */
             padding-right: 4px;
+            box-sizing: border-box;
         }
 
-        /* 👑 金字塔動態階梯卡片 */
+        /* 👑 金字塔動態階梯卡片樣式微調（稍微緊湊，避免佔空間） */
         .order-card {
             background: #f7f3e9;
             border-left: 6px solid #d97706;
@@ -131,38 +132,38 @@
             box-sizing: border-box;
         }
         
-        /* 🥇 置頂第一張待做單 */
+        /* 🥇 第一張（優先） */
         .card-rank-0 {
             border-left-width: 9px;
             background: #fffdf5;
             border-color: #dc2626;
-            padding: 10px 12px;
+            padding: 8px 10px;
             box-shadow: 0 3px 6px rgba(220,38,38,0.1);
         }
-        .card-rank-0 .order-header { font-size: 17px; color: #dc2626; }
-        .card-rank-0 .order-items-list { font-size: 14.5px; line-height: 1.4; }
-        .card-rank-0 .order-item-note { font-size: 13px; padding: 4px 6px; }
+        .card-rank-0 .order-header { font-size: 16px; color: #dc2626; }
+        .card-rank-0 .order-items-list { font-size: 14px; line-height: 1.3; }
+        .card-rank-0 .order-item-note { font-size: 12px; padding: 3px 6px; }
 
-        /* 🥈 第二張待做單 */
+        /* 🥈 第二張 */
         .card-rank-1 {
             border-left-width: 6px;
             background: #faf7f0;
             border-color: #d97706;
-            padding: 8px 10px;
+            padding: 7px 9px;
         }
-        .card-rank-1 .order-header { font-size: 14.5px; }
-        .card-rank-1 .order-items-list { font-size: 13.5px; }
-        .card-rank-1 .order-item-note { font-size: 12px; }
+        .card-rank-1 .order-header { font-size: 14px; }
+        .card-rank-1 .order-items-list { font-size: 13px; }
+        .card-rank-1 .order-item-note { font-size: 11.5px; }
 
-        /* 🥉 第三張以及之後的單 */
+        /* 🥉 第三張及之後的單 */
         .card-rank-rest {
             border-left-width: 4px;
             background: #f3eee1;
             border-color: #a67c52;
-            padding: 6px 10px;
+            padding: 6px 8px;
         }
-        .card-rank-rest .order-header { font-size: 13.5px; }
-        .card-rank-rest .order-items-list { font-size: 12.5px; margin: 2px 0; }
+        .card-rank-rest .order-header { font-size: 13px; }
+        .card-rank-rest .order-items-list { font-size: 12px; margin: 2px 0; }
         .card-rank-rest .order-item-note { font-size: 11px; padding: 2px 4px; }
 
         .order-header {
@@ -188,9 +189,10 @@
             color: white;
             border: none;
             padding: 4px 8px;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: bold;
             border-radius: 4px;
+            cursor: pointer;
         }
 
         .section-stats {
@@ -423,10 +425,9 @@
             let completedCount = 0;
             let totalRevenue = 0;
 
-            // 🌟 關鍵改動：畫面上的「接單明細區」完全過濾掉已完成的單子，徹底隱藏！
+            // 🌟【除錯關鍵 2】完全不把已完成的單子放進 pending 陣列，確保畫面上按完「完成出餐」它會立馬100%隱藏消失！
             let pendingOrders = orders.filter(o => !completedOrderIds.includes(o.id)).sort((a, b) => a.id - b.id);
             
-            // 計算統計數據與流水帳（流水帳仍然會保留歷史供本日對帳）
             orders.forEach(order => {
                 const formattedNum = String(order.id).padStart(3, '0');
                 const isFinished = completedOrderIds.includes(order.id);
@@ -438,7 +439,7 @@
                     pendingCount++;
                 }
 
-                // 填入底部歷史流水帳
+                // 底部的歷史對帳流水帳（維持不動，供收攤核對）
                 const tr = document.createElement('tr');
                 let summary = '';
                 if (Array.isArray(order.items) && order.items.length > 0) {
@@ -453,14 +454,14 @@
                 tbody.appendChild(tr);
             });
 
-            // 呈現未完成訂單卡片 (依舊維持金字塔前三階梯效果)
+            // 呈現未完成的極簡排隊單
             if (pendingOrders.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">🎉 太棒了！目前沒有待做訂單。</div>';
+                container.innerHTML = '<div style="text-align:center; color:#16a34a; padding:20px; font-weight:bold;">🎉 太棒了！目前沒有待做訂單。</div>';
             } else {
                 pendingOrders.forEach((order, index) => {
                     const formattedNum = String(order.id).padStart(3, '0');
                     
-                    // 根據目前「未完成」的順序給予金字塔階梯樣式
+                    // 動態設定前三筆金字塔階梯樣式，第 4 筆後（index >= 3）統一維持最不佔空間的 rest 樣式
                     let rankClass = "card-rank-rest";
                     if (index === 0) rankClass = "card-rank-0";
                     else if (index === 1) rankClass = "card-rank-1";
