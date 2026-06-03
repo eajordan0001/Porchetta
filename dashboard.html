@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阿德師傅 - 老闆即時接單後台</title>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            font-family: "Segoe Script", "Apple Chancery", cursive, "Noto Sans TC", sans-serif;
+            background-color: #f0e6d2;
+            color: #4a2f1c;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            margin: 5px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 3px solid #a67c52;
+        }
+
+        /* 🔄 核心修復：自動刷新控制列 */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .refresh-btn {
+            background-color: #4a2f1c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 📐 完美比例分配彈性容器 (螢幕垂直比例分配) */
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* 【區域一：50% 點單明細與管理】 */
+        .section-details {
+            background-color: #ffffff;
+            border: 3px solid #a67c52;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .section-details h2 {
+            font-size: 18px;
+            margin: 0 0 10px 0;
+            color: #a67c52;
+            border-bottom: 1px dashed #a67c52;
+            padding-bottom: 3px;
+        }
+
+        /* 訂單卡片流 */
+        .order-card {
+            background: #f7f3e9;
+            border-left: 6px solid #d97706; /* 未完成用橘色 */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            position: relative;
+        }
+        .order-card.status-success {
+            border-left-color: #16a34a; /* 已完成用綠色 */
+            background: #f0fdf4;
+            opacity: 0.8;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .order-items-list {
+            font-size: 15px;
+            margin: 5px 0;
+            padding-left: 15px;
+        }
+        
+        /* 🔧 貼心修復：成功交易內標籤文字，維持 20px 大字、四字等寬 alignment */
+        .status-label {
+            font-size: 20px;
+            font-weight: bold;
+            display: inline-block;
+            text-align: justify;
+            text-align-last: justify;
+            width: 5rem; /* 固定寬度防止跑版 */
+        }
+        
+        .action-btn {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+            margin-top: -5px;
+        }
+
+        /* 【區域二：30% 訂單統計數據統計】 */
+        .section-stats {
+            background-color: #ffffff;
+            border: 2px solid #a67c52;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .stat-box {
+            text-align: center;
+        }
+        .stat-box .title { font-size: 14px; color: #666; }
+        .stat-box .num { font-size: 24px; font-weight: bold; color: #4a2f1c; margin-top: 3px; }
+
+        /* 【區域三：20% 歷史營業額與無滑動記錄】 */
+        .section-history {
+            background-color: #e6dfc7;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .section-history h2 {
+            font-size: 16px;
+            margin: 0 0 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* 🛠️ 手機防滑動優化：精簡文字、縮小間距，確保絕不超出螢幕左右邊界 */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .history-table th, .history-table td {
+            padding: 6px 4px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>👨‍🍳 阿德師傅 - 即時出單系統</h1>
+
+    <div class="controls">
+        <div>狀態: <span id="sync-status" style="color: green; font-weight: bold;">● 即時連線中</span></div>
+        <button class="refresh-btn" onclick="fetchOrders()">🔄 手動刷新</button>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="section-details" style="flex: 5;">
+            <h2>📋 當前接單明細 (新單置頂)</h2>
+            <div id="orders-container">正在下載最新出單資料...</div>
+        </div>
+
+        <div class="section-stats" style="flex: 3;">
+            <div class="stat-box">
+                <div class="title">⏳ 待做訂單</div>
+                <div class="num" id="stat-pending">0</div>
+            </div>
+            <div class="stat-box" style="border-left: 1px solid #ccc; border-right: 1px solid #ccc; padding: 0 20px;">
+                <div class="title">✅ 已過單</div>
+                <div class="num" id="stat-completed" style="color: #16a34a;">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="title">💰 今日營收</div>
+                <div class="num" id="stat-revenue" style="color: #b45309;">$0</div>
+            </div>
+        </div>
+
+        <div class="section-history" style="flex: 2;">
+            <h2><span>📜 歷史出單流水帳</span> <span id="history-count" style="font-size: 13px; color:#555;">共 0 筆</span></h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>單號</th>
+                        <th>品項/客製摘要</th>
+                        <th>金額</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #888;">暫無紀錄</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // 直連 Supabase 原生 Rest API
+        const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
+        const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
+
+        // 核心抓取訂單函式
+        async function fetchOrders() {
+            try {
+                document.getElementById('sync-status').textContent = '🔄 讀取中...';
+                document.getElementById('sync-status').style.color = '#b45309';
+
+                // 撈取今日所有訂單，依 ID 降序排列 (新單在最上面)
+                const response = await fetch(`${API_URL}?order=id.desc`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': API_KEY,
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error("後台讀取失敗");
+                const orders = await response.json();
+
+                renderDashboard(orders);
+
+                document.getElementById('sync-status').textContent = '● 即時連線中';
+                document.getElementById('sync-status').style.color = 'green';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('sync-status').textContent = '❌ 連線失敗';
+                document.getElementById('sync-status').style.color = 'red';
+            }
+        }
+
+        // 渲染畫面邏輯
+        function renderDashboard(orders) {
+            const container = document.getElementById('orders-container');
+            const tbody = document.getElementById('history-tbody');
+            
+            container.innerHTML = '';
+            tbody.innerHTML = '';
+
+            let pendingCount = 0;
+            let completedCount = 0;
+            let totalRevenue = 0;
+
+            if (orders.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">目前尚無人點餐。</div>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">暫無紀錄</td></tr>';
+                return;
+            }
+
+            orders.forEach(order => {
+                const formattedNum = String(order.id).padStart(3, '0');
+                const isFinished = order.status === 'completed'; // 假設你資料庫用 status 欄位控制
+
+                // 計算數據
+                if (isFinished) {
+                    completedCount++;
+                    totalRevenue += order.total_price;
+                } else {
+                    pendingCount++;
+                }
+
+                // --- 1. 渲染頂部【50% 點單明細卡片】---
+                const card = document.createElement('div');
+                card.className = `order-card ${isFinished ? 'status-success' : ''}`;
+                
+                // 解析點餐內容
+                let itemsHtml = '';
+                if (Array.isArray(order.items)) {
+                    order.items.forEach(i => {
+                        let customText = i.customization && i.customization.length > 0 ? ` [${i.customization.join(', ')}]` : '';
+                        itemsHtml += `<li><strong>${i.item}</strong> ${i.size || ''} <span style="color:#b45309;">${customText}</span></li>`;
+                    });
+                }
+
+                // 按鈕控制
+                let actionButtonHtml = '';
+                if (!isFinished) {
+                    actionButtonHtml = `<button class="action-btn" onclick="toggleStatus(${order.id}, 'completed')">✔️ 完成出餐</button>`;
+                } else {
+                    // 20px 大字、四字等寬對齊標籤
+                    actionButtonHtml = `<span class="status-label" style="color: #16a34a;">交易成功</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="order-header">
+                        <span>單號 #${formattedNum}</span>
+                        <span style="color:#b45309;">$${order.total_price}</span>
+                    </div>
+                    <ul class="order-items-list">${itemsHtml}</ul>
+                    <div style="text-align: right; margin-top: 5px; height: 25px;">
+                        ${actionButtonHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // --- 2. 渲染底部【20% 歷史流水帳 (無滑動精簡優化版)】---
+                const tr = document.createElement('tr');
+                
+                // 精簡品項文字摘要，防止寬度超出
+                let summary = '';
+                if (Array.isArray(order.items) && order.items.length > 0) {
+                    summary = order.items.map(i => i.item === 'Porchetta' ? '烤豬' : '三明治').join('+');
+                    if (order.items[0].customization && order.items[0].customization.length > 0) {
+                        summary += `(${order.items[0].customization[0]})`; // 只抓第一個客製化防止太長
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td><strong>#${formattedNum}</strong></td>
+                    <td style="color:#555; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${summary}</td>
+                    <td><span style="color:${isFinished ? 'green':'#b45309'}; font-weight:bold;">$${order.total_price}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 更新 30% 數據看板
+            document.getElementById('stat-pending').textContent = pendingCount;
+            document.getElementById('stat-completed').textContent = completedCount;
+            document.getElementById('stat-revenue').textContent = `$${totalRevenue}`;
+            document.getElementById('history-count').textContent = `共 ${orders.length} 筆`;
+        }
+
+        // 變更訂單狀態（點擊「完成出餐」時觸發）
+        async function toggleStatus(orderId, newStatus) {
+            try {
+                const response = await fetch(`${API_URL}?id=eq.${orderId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': API_KEY,
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (!response.ok) throw new Error("修改狀態失敗");
+                
+                // 刷新看板
+                fetchOrders();
+            } catch (err) {
+                alert("操作失敗: " + err.message + "\n請確認資料庫 orders 表是否具備 Update 的 RLS 權限。");
+            }
+        }
+
+        // 自動刷新機制：每隔 6 秒自動幫老闆巡邏新訂單
+        setInterval(fetchOrders, 6000);
+
+        // 初始化載入
+        window.onload = fetchOrders;
+    </script>
+</body>
+</html>
