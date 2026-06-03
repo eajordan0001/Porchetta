@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>阿德師傅 - 手機直式點餐菜單 (PWA終極修復版)</title>
+    <title>阿德師傅 - 手機直式點餐菜單 (防禦除錯版)</title>
     
     <link rel="manifest" href="manifest.json">
     
@@ -22,7 +22,7 @@
             background-color: #f7f3e9; 
             border: 15px solid #a67c52; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            padding-bottom: 120px; /* 加大底部留白，避免擋到最後一項商品 */
+            padding-bottom: 120px; 
             position: relative;
         }
 
@@ -237,19 +237,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // PWA Service Worker 註冊腳本
+        // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('PWA Service Worker 註冊成功！', reg))
-                    .catch(err => console.error('註冊失敗：', err));
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW未註冊', err));
             });
         }
 
-        // 初始化 Supabase 連線
+        // 初始化 Supabase 
         const SUPABASE_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
-        
         let supabase;
         try {
             supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -259,50 +256,66 @@
 
         let cart = { items: [], total: 0 };
 
-        // 🛠️ 修正：接收明確的 btn 參數，徹底解決跨瀏覽器抓不到點擊目標的問題
+        // 🛠️ 終極防禦型加入購物車邏輯
         function addToCart(item, btn) {
-            let price = 0;
-            let size = "";
-            let customization = [];
-            
-            if (item === 'Porchetta') {
-                const largeRadio = document.getElementById('porchetta-large');
-                if (largeRadio.checked) {
-                    price = 300;
-                    size = "(大份)";
-                } else {
-                    price = 200;
-                    size = "(小份)";
-                }
-                if (document.getElementById('porchetta-辣').checked) customization.push('大辣');
-                if (document.getElementById('porchetta-洋蔥').checked) customization.push('不要洋蔥');
+            try {
+                let price = 0;
+                let size = "";
+                let customization = [];
                 
-            } else if (item === 'La Dante Sandwich') {
-                price = 170;
-                size = "(常規)";
-                if (document.getElementById('sandwich-辣').checked) customization.push('大辣');
-                if (document.getElementById('sandwich-醬汁').checked) customization.push('醬汁分開');
-            }
+                if (item === 'Porchetta') {
+                    const largeRadio = document.getElementById('porchetta-large');
+                    // 🛡️ 防空機制：確認大份按鈕存在
+                    if (largeRadio && largeRadio.checked) {
+                        price = 300;
+                        size = "(大份)";
+                    } else {
+                        price = 200;
+                        size = "(小份)";
+                    }
+                    
+                    const elSpicy = document.getElementById('porchetta-辣');
+                    const elOnion = document.getElementById('porchetta-洋蔥');
+                    if (elSpicy && elSpicy.checked) customization.push('大辣');
+                    if (elOnion && elOnion.checked) customization.push('不要洋蔥');
+                    
+                } else if (item === 'La Dante Sandwich') {
+                    price = 170;
+                    size = "(常規)";
+                    const elSandSpicy = document.getElementById('sandwich-辣');
+                    const elSandSauce = document.getElementById('sandwich-醬汁');
+                    if (elSandSpicy && elSandSpicy.checked) customization.push('大辣');
+                    if (elSandSauce && elSandSauce.checked) customization.push('醬汁分開');
+                }
 
-            let cartItem = { item: item, size: size, price: price, customization: customization };
-            cart.items.push(cartItem);
-            cart.total += price;
+                let cartItem = { item: item, size: size, price: price, customization: customization };
+                cart.items.push(cartItem);
+                cart.total += price;
 
-            // 更新底欄數字
-            updateCartDisplay();
-            
-            // 順暢更新按鈕文字回饋
-            if (btn) {
-                btn.textContent = "已加入！";
-                setTimeout(() => {
-                    btn.textContent = "➕ 加入購物車";
-                }, 1000);
+                // 執行更新畫面
+                updateCartDisplay();
+                
+                // 按鈕文字更新
+                if (btn) {
+                    btn.textContent = "已加入！";
+                    setTimeout(() => { btn.textContent = "➕ 加入購物車"; }, 1000);
+                }
+
+            } catch (error) {
+                // 🚨 如果依然出錯，直接在手機上彈出警告，告訴我們確切原因
+                alert("加入購物車時發生JavaScript錯誤: " + error.message);
             }
         }
 
         function updateCartDisplay() {
-            document.getElementById('item-count').textContent = `🛒 已點項目: ${cart.items.length} 項`;
-            document.getElementById('total-price').textContent = `總金額: $${cart.total}`;
+            try {
+                const elCount = document.getElementById('item-count');
+                const elTotal = document.getElementById('total-price');
+                if (elCount) elCount.textContent = `🛒 已點項目: ${cart.items.length} 項`;
+                if (elTotal) elTotal.textContent = `總金額: $${cart.total}`;
+            } catch (err) {
+                alert("更新購物車畫面時出錯: " + err.message);
+            }
         }
 
         async function confirmOrder() {
