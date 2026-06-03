@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     
     <style>
-        /* 📐 全螢幕嚴格鎖定，防止手機整頁滑動變形 */
+        /* 📐 手機螢幕優化：避免死鎖，給底端保留緩衝 */
         html, body {
             margin: 0;
             padding: 0;
@@ -27,13 +27,31 @@
             padding: 8px;
         }
 
-        h1 {
-            text-align: center;
-            font-size: 18px;
-            margin: 0 0 5px 0;
-            padding-bottom: 2px;
+        /* 頂部標題與時間整合列 */
+        .header-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             border-bottom: 3px solid #a67c52;
+            padding-bottom: 4px;
+            margin-bottom: 5px;
             flex-shrink: 0;
+        }
+        h1 {
+            font-size: 18px;
+            margin: 0;
+        }
+        /* 🕒 數字時鐘專屬精緻樣式 */
+        .live-clock {
+            font-size: 13px;
+            font-weight: bold;
+            color: #6b4e31;
+            background-color: #fff;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 3px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            letter-spacing: 0.5px;
         }
 
         .controls {
@@ -43,8 +61,8 @@
             background-color: #ffffff;
             padding: 5px 10px;
             border-radius: 6px;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
             font-size: 13px;
             flex-shrink: 0;
         }
@@ -58,34 +76,35 @@
             font-size: 12px;
         }
 
-        /* 📐 重新調配三大區塊高度：55% / 15% / 30% */
+        /* 主容器佈局 */
         .dashboard-container {
             display: flex;
             flex-direction: column;
             width: 100%;
-            height: calc(100vh - 80px); /* 扣除頂部空間 */
-            gap: 8px;
+            /* 扣除上方與底部摺疊抽屜的基礎高度 */
+            height: calc(100vh - 155px); 
+            gap: 6px;
+            position: relative;
         }
 
         /* ==========================================
-           【區域一：佔 55% 的動態金字塔明細區】
+           【區域一：動態金字塔明細區】
            ========================================== */
         .section-details {
             background-color: #ffffff;
             border: 3px solid #a67c52;
             border-radius: 8px;
             padding: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             box-sizing: border-box;
-            
-            flex: 55;
+            flex: 1; /* 自動填滿剩餘高度 */
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
         .section-details h2 {
-            font-size: 14px;
-            margin: 0 0 6px 0;
+            font-size: 13px;
+            margin: 0 0 5px 0;
             color: #a67c52;
             border-bottom: 1px dashed #a67c52;
             padding-bottom: 2px;
@@ -93,63 +112,62 @@
         }
         #orders-container {
             flex: 1;
-            overflow-y: auto; /* 超出的單號自己在這裡滾動 */
+            overflow-y: auto;
             padding-right: 2px;
         }
 
-        /* 👑 金字塔動態卡片樣式變形計 */
+        /* 👑 金字塔動態階梯卡片樣式 */
         .order-card {
             background: #f7f3e9;
             border-left: 6px solid #d97706;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-radius: 4px;
             box-sizing: border-box;
-            transition: all 0.2s ease;
         }
         
-        /* 🥇 置頂最大單 (特大醒目) */
+        /* 🥇 置頂第一張待做單 */
         .card-rank-0 {
             border-left-width: 10px;
             background: #fffdf5;
-            border-color: #dc2626; /* 超緊急紅色 */
-            padding: 14px;
-            box-shadow: 0 4px 8px rgba(220,38,38,0.15);
+            border-color: #dc2626;
+            padding: 12px;
+            box-shadow: 0 3px 6px rgba(220,38,38,0.12);
         }
-        .card-rank-0 .order-header { font-size: 20px; color: #dc2626; }
-        .card-rank-0 .order-items-list { font-size: 16px; line-height: 1.5; }
-        .card-rank-0 .order-item-note { font-size: 14px; padding: 6px; }
+        .card-rank-0 .order-header { font-size: 19px; color: #dc2626; }
+        .card-rank-0 .order-items-list { font-size: 15px; line-height: 1.4; }
+        .card-rank-0 .order-item-note { font-size: 13px; padding: 5px; }
 
-        /* 🥈 第二張單 (中等) */
+        /* 🥈 第二張待做單 */
         .card-rank-1 {
             border-left-width: 7px;
             background: #faf7f0;
-            border-color: #d97706; /* 橘色提醒 */
-            padding: 10px;
+            border-color: #d97706;
+            padding: 9px;
         }
-        .card-rank-1 .order-header { font-size: 16px; }
-        .card-rank-1 .order-items-list { font-size: 14px; }
+        .card-rank-1 .order-header { font-size: 15px; }
+        .card-rank-1 .order-items-list { font-size: 13.5px; }
         .card-rank-1 .order-item-note { font-size: 12px; }
 
-        /* 🥉 其餘後續單 (精簡小巧) */
+        /* 🥉 之後的單 */
         .card-rank-rest {
             border-left-width: 4px;
             background: #f3eee1;
-            border-color: #a67c52; /* 基礎咖啡色 */
-            padding: 6px 10px;
+            border-color: #a67c52;
+            padding: 6px 9px;
         }
-        .card-rank-rest .order-header { font-size: 14px; margin-bottom: 2px; }
-        .card-rank-rest .order-items-list { font-size: 13px; margin: 2px 0; }
-        .card-rank-rest .order-item-note { font-size: 11px; padding: 2px 5px; }
+        .card-rank-rest .order-header { font-size: 13.5px; margin-bottom: 2px; }
+        .card-rank-rest .order-items-list { font-size: 12.5px; margin: 2px 0; }
+        .card-rank-rest .order-item-note { font-size: 11px; padding: 2px 4px; }
 
-        /* 完成單樣式 */
+        /* 完成過單樣式 */
         .order-card.status-success {
             border-left-color: #16a34a !important;
             background: #f0fdf4 !important;
-            opacity: 0.7;
-            padding: 6px 10px !important;
+            opacity: 0.65;
+            padding: 5px 9px !important;
         }
-        .order-card.status-success .order-header { font-size: 14px !important; color: #16a34a !important; }
-        .order-card.status-success .order-items-list { font-size: 13px !important; }
+        .order-card.status-success .order-header { font-size: 13.5px !important; color: #16a34a !important; }
+        .order-card.status-success .order-items-list { font-size: 12.5px !important; }
 
         .order-header {
             display: flex;
@@ -157,7 +175,7 @@
             font-weight: bold;
         }
         .order-items-list {
-            margin: 4px 0;
+            margin: 3px 0;
             padding-left: 15px;
         }
         .order-item-note {
@@ -166,12 +184,11 @@
             color: #b45309;
             border-radius: 4px;
             font-weight: bold;
-            margin-top: 3px;
+            margin-top: 2px;
         }
         
-        /* 🎯 成功交易四字等寬固定寬度 (20px) */
         .status-label {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             display: inline-block;
             text-align: justify;
@@ -189,7 +206,7 @@
         }
 
         /* ==========================================
-           【區域二：佔 13% 的數據統計區】
+           【區域二：數據統計區】
            ========================================== */
         .section-stats {
             background-color: #ffffff;
@@ -200,43 +217,60 @@
             justify-content: space-around;
             align-items: center;
             box-sizing: border-box;
-            
-            flex: 13;
             flex-shrink: 0;
         }
         .stat-box { text-align: center; }
         .stat-box .title { font-size: 11px; color: #666; }
-        .stat-box .num { font-size: 18px; font-weight: bold; color: #4a2f1c; margin-top: 1px; }
+        .stat-box .num { font-size: 17px; font-weight: bold; color: #4a2f1c; margin-top: 1px; }
 
         /* ==========================================
-           【區域三：佔 32% 的歷史流水帳區 - 徹底修復滾動】
+           【區域三：徹底改造 - 彈出式歷史流水帳抽屜】
            ========================================== */
+        .drawer-toggle-btn {
+            background-color: #4a2f1c;
+            color: #fffdf5;
+            width: 100%;
+            border: none;
+            padding: 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        
         .section-history {
             background-color: #e6dfc7;
-            border-radius: 8px;
-            padding: 8px;
             box-sizing: border-box;
-            
-            flex: 32; /* 分配 32% 高度 */
+            width: 100%;
+            height: 0px; /* 預設完全收合不佔空間 */
+            overflow: hidden;
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 平滑彈出動畫 */
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* 防止溢出外部 */
+            border-left: 1px solid #a67c52;
+            border-right: 1px solid #a67c52;
         }
-        .section-history h2 {
-            font-size: 14px;
-            margin: 0 0 5px 0;
-            display: flex;
-            justify-content: space-between;
-            flex-shrink: 0;
+        
+        /* 當抽屜被打開時的身高（高達 220px 方便完整對帳） */
+        .section-history.open {
+            height: 220px;
+            padding: 6px;
+            border-bottom: 2px solid #a67c52;
         }
-        /* 🛠️ 關鍵修正：給予表格外層一個獨立的滾動抽屜 */
+
         .table-scroll {
             flex: 1;
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; /* 優化手機滑動流暢度 */
-            background-color: rgba(255, 255, 255, 0.3);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: rgba(255, 255, 255, 0.4);
             border-radius: 4px;
-            padding: 2px;
         }
         .history-table {
             width: 100%;
@@ -245,17 +279,17 @@
             table-layout: fixed;
         }
         .history-table th {
-            background-color: #4a2f1c;
+            background-color: #6b4e31;
             color: #ffffff;
             position: sticky;
-            top: 0; /* 表頭吸頂 */
-            padding: 4px 2px;
+            top: 0;
+            padding: 5px 2px;
             z-index: 10;
         }
         .history-table td {
-            padding: 6px 2px;
+            padding: 7px 4px;
             text-align: left;
-            border-bottom: 1px solid #b5a88f;
+            border-bottom: 1px solid #c8beab;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -264,7 +298,10 @@
 </head>
 <body>
 
-    <h1>👨‍🍳 阿德師傅 - 即時出單系統</h1>
+    <div class="header-wrapper">
+        <h1>👨‍🍳 阿德師傅 - 即時出單系統</h1>
+        <div class="live-clock" id="current-time">2026-01-01 00:00:00</div>
+    </div>
 
     <div class="controls">
         <div>狀態: <span id="sync-status" style="color: green; font-weight: bold;">● 即時連線中</span></div>
@@ -272,9 +309,8 @@
     </div>
 
     <div class="dashboard-container">
-        
         <div class="section-details">
-            <h2>📋 當前接單明細 (金字塔排版：先到新單置頂放大)</h2>
+            <h2>📋 當前接單明細 (新單優先置頂放大)</h2>
             <div id="orders-container">正在下載最新出單資料...</div>
         </div>
 
@@ -292,27 +328,29 @@
                 <div class="num" id="stat-revenue" style="color: #b45309;">$0</div>
             </div>
         </div>
+    </div>
 
-        <div class="section-history">
-            <h2><span>📜 歷史出單流水帳</span> <span id="history-count" style="font-size: 12px; color:#555;">共 0 筆</span></h2>
-            <div class="table-scroll">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 20%;">單號</th>
-                            <th style="width: 60%;">品項/客製摘要</th>
-                            <th style="width: 20%;">金額</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-tbody">
-                        <tr>
-                            <td colspan="3" style="text-align: center; color: #888; padding: 10px;">暫無紀錄</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    <button class="drawer-toggle-btn" onclick="toggleHistoryDrawer()">
+        📜 <span id="btn-text">點開對帳流水帳</span> (<span id="history-count">共 0 筆</span>) 🔽
+    </button>
+    
+    <div class="section-history" id="history-drawer">
+        <div class="table-scroll">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">單號</th>
+                        <th style="width: 60%;">品項/客製摘要</th>
+                        <th style="width: 20%;">金額</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #888; padding: 10px;">暫無紀錄</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-
     </div>
 
     <script>
@@ -320,6 +358,40 @@
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
         let completedOrderIds = JSON.parse(localStorage.getItem('completed_orders') || '[]');
+
+        // 🕒 核心功能：動態更新頂部 YYYY-MM-DD HH:MM:SS 時間
+        function updateClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('current-time').textContent = 
+                `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // 載入時立刻執行一次
+
+        // 📜 流水帳抽屜開合切換邏輯
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('history-drawer');
+            const btnText = document.getElementById('btn-text');
+            
+            if (drawer.classList.contains('open')) {
+                drawer.classList.remove('open');
+                btnText.textContent = '點開對帳流水帳';
+            } else {
+                drawer.classList.add('open');
+                btnText.textContent = '收起對帳流水帳';
+                // 點開時自動幫忙滾動到最頂端
+                setTimeout(() => {
+                    document.querySelector('.table-scroll').scrollTop = 0;
+                }, 200);
+            }
+        }
 
         async function fetchOrders() {
             try {
@@ -366,39 +438,30 @@
                 return;
             }
 
-            // 🛠️ 金字塔關鍵邏輯：
-            // 為了讓最先點單（單號最小）的「未完成」訂單在最上面放大顯示，我們先把未完成跟已完成分開。
-            let pendingOrders = orders.filter(o => !completedOrderIds.includes(o.id)).sort((a, b) => a.id - b.id); // 未完成：小單號（舊單）在前
-            let completedOrders = orders.filter(o => completedOrderIds.includes(o.id)).sort((a, b) => b.id - a.id); // 已完成：新單在前
-
-            // 合併在一起渲染，讓未完成永遠置頂，已完成壓在下方
+            // 金字塔排序邏輯：未完成小單號在前（優先做舊單），已完成在大單號在後
+            let pendingOrders = orders.filter(o => !completedOrderIds.includes(o.id)).sort((a, b) => a.id - b.id);
+            let completedOrders = orders.filter(o => completedOrderIds.includes(o.id)).sort((a, b) => b.id - a.id);
             let sortedOrders = [...pendingOrders, ...completedOrders];
 
-            let pendingIndex = 0; // 用來計算目前是第幾個「未完成」的單子
+            let pendingIndex = 0;
 
             sortedOrders.forEach(order => {
                 const formattedNum = String(order.id).padStart(3, '0');
                 const isFinished = completedOrderIds.includes(order.id);
 
-                let rankClass = "card-rank-rest"; // 預設為小尺寸
+                let rankClass = "card-rank-rest";
 
                 if (isFinished) {
                     completedCount++;
                     totalRevenue += order.total_price;
                 } else {
                     pendingCount++;
-                    // 👑 依據未完成的順序分派大、中、小尺寸
-                    if (pendingIndex === 0) {
-                        rankClass = "card-rank-0"; // 最久的第一張未完成單 -> 顯示特大
-                    } else if (pendingIndex === 1) {
-                        rankClass = "card-rank-1"; // 第二張未完成單 -> 顯示中等
-                    } else {
-                        rankClass = "card-rank-rest"; // 其餘未完成單 -> 顯示小
-                    }
+                    if (pendingIndex === 0) rankClass = "card-rank-0";
+                    else if (pendingIndex === 1) rankClass = "card-rank-1";
                     pendingIndex++;
                 }
 
-                // --- 1. 繪製卡片 ---
+                // --- 1. 明細卡片 ---
                 const card = document.createElement('div');
                 card.className = `order-card ${rankClass} ${isFinished ? 'status-success' : ''}`;
                 
@@ -436,7 +499,7 @@
                 `;
                 container.appendChild(card);
 
-                // --- 2. 繪製底部歷史流水帳 ---
+                // --- 2. 流水帳表格 ---
                 const tr = document.createElement('tr');
                 let summary = '';
                 if (Array.isArray(order.items) && order.items.length > 0) {
