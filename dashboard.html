@@ -8,23 +8,23 @@
     <link rel="manifest" href="manifest.json">
     
     <style>
-        /* 📐 手機螢幕優化：避免死鎖，給底端保留緩衝 */
+        /* 🔓 解除全螢幕鎖死！讓整頁可以自然滾動，確保看得到最頂與最底 */
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100vh;
+            min-height: 100vh;
             font-family: "Segoe Script", "Apple Chancery", cursive, "Noto Sans TC", sans-serif;
             background-color: #f0e6d2;
             color: #4a2f1c;
             box-sizing: border-box;
-            overflow: hidden;
+            overflow-y: auto; /* 允許垂直滾動 */
         }
 
         body {
             display: flex;
             flex-direction: column;
-            padding: 8px;
+            padding: 10px;
         }
 
         /* 頂部標題與時間整合列 */
@@ -33,25 +33,26 @@
             flex-direction: column;
             align-items: center;
             border-bottom: 3px solid #a67c52;
-            padding-bottom: 4px;
-            margin-bottom: 5px;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
         h1 {
-            font-size: 18px;
+            font-size: 20px;
             margin: 0;
         }
-        /* 🕒 數字時鐘專屬精緻樣式 */
+        
+        /* 🕒 霸氣放大版數字時鐘樣式 */
         .live-clock {
-            font-size: 13px;
-            font-weight: bold;
-            color: #6b4e31;
-            background-color: #fff;
-            padding: 2px 8px;
-            border-radius: 20px;
-            margin-top: 3px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-            letter-spacing: 0.5px;
+            font-size: 18px; /* 大幅放大字體 */
+            font-weight: 900; /* 極粗體 */
+            color: #ffffff;
+            background-color: #4a2f1c; /* 改用深色背景更醒目 */
+            padding: 4px 15px;
+            border-radius: 6px;
+            margin-top: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
         }
 
         .controls {
@@ -59,21 +60,21 @@
             justify-content: space-between;
             align-items: center;
             background-color: #ffffff;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            font-size: 13px;
+            font-size: 14px;
             flex-shrink: 0;
         }
         .refresh-btn {
-            background-color: #4a2f1c;
+            background-color: #a67c52;
             color: white;
             border: none;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
         }
 
         /* 主容器佈局 */
@@ -81,81 +82,71 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            /* 扣除上方與底部摺疊抽屜的基礎高度 */
-            height: calc(100vh - 155px); 
-            gap: 6px;
-            position: relative;
+            gap: 10px;
         }
 
         /* ==========================================
-           【區域一：動態金字塔明細區】
+           【區域一：優化黃金比例金字塔明細區】
            ========================================== */
         .section-details {
             background-color: #ffffff;
             border: 3px solid #a67c52;
             border-radius: 8px;
-            padding: 8px;
+            padding: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             box-sizing: border-box;
-            flex: 1; /* 自動填滿剩餘高度 */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
         .section-details h2 {
-            font-size: 13px;
-            margin: 0 0 5px 0;
+            font-size: 14px;
+            margin: 0 0 8px 0;
             color: #a67c52;
             border-bottom: 1px dashed #a67c52;
-            padding-bottom: 2px;
-            flex-shrink: 0;
+            padding-bottom: 4px;
         }
         #orders-container {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 2px;
+            width: 100%;
         }
 
-        /* 👑 金字塔動態階梯卡片樣式 */
+        /* 👑 金字塔動態階梯卡片（黃金比例微縮版，不臃腫） */
         .order-card {
             background: #f7f3e9;
             border-left: 6px solid #d97706;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             border-radius: 4px;
             box-sizing: border-box;
         }
         
-        /* 🥇 置頂第一張待做單 */
+        /* 🥇 置頂第一張待做單（精緻放大版） */
         .card-rank-0 {
-            border-left-width: 10px;
+            border-left-width: 9px;
             background: #fffdf5;
             border-color: #dc2626;
-            padding: 12px;
-            box-shadow: 0 3px 6px rgba(220,38,38,0.12);
+            padding: 10px 12px; /* 縮減上下間距 */
+            box-shadow: 0 3px 6px rgba(220,38,38,0.1);
         }
-        .card-rank-0 .order-header { font-size: 19px; color: #dc2626; }
-        .card-rank-0 .order-items-list { font-size: 15px; line-height: 1.4; }
-        .card-rank-0 .order-item-note { font-size: 13px; padding: 5px; }
+        .card-rank-0 .order-header { font-size: 17px; color: #dc2626; }
+        .card-rank-0 .order-items-list { font-size: 14.5px; line-height: 1.4; }
+        .card-rank-0 .order-item-note { font-size: 13px; padding: 4px 6px; }
 
-        /* 🥈 第二張待做單 */
+        /* 🥈 第二張待做單（適中版） */
         .card-rank-1 {
-            border-left-width: 7px;
+            border-left-width: 6px;
             background: #faf7f0;
             border-color: #d97706;
-            padding: 9px;
+            padding: 8px 10px;
         }
-        .card-rank-1 .order-header { font-size: 15px; }
+        .card-rank-1 .order-header { font-size: 14.5px; }
         .card-rank-1 .order-items-list { font-size: 13.5px; }
         .card-rank-1 .order-item-note { font-size: 12px; }
 
-        /* 🥉 之後的單 */
+        /* 🥉 之後的單（小巧預告版） */
         .card-rank-rest {
             border-left-width: 4px;
             background: #f3eee1;
             border-color: #a67c52;
-            padding: 6px 9px;
+            padding: 6px 10px;
         }
-        .card-rank-rest .order-header { font-size: 13.5px; margin-bottom: 2px; }
+        .card-rank-rest .order-header { font-size: 13.5px; }
         .card-rank-rest .order-items-list { font-size: 12.5px; margin: 2px 0; }
         .card-rank-rest .order-item-note { font-size: 11px; padding: 2px 4px; }
 
@@ -163,8 +154,8 @@
         .order-card.status-success {
             border-left-color: #16a34a !important;
             background: #f0fdf4 !important;
-            opacity: 0.65;
-            padding: 5px 9px !important;
+            opacity: 0.6;
+            padding: 6px 10px !important;
         }
         .order-card.status-success .order-header { font-size: 13.5px !important; color: #16a34a !important; }
         .order-card.status-success .order-items-list { font-size: 12.5px !important; }
@@ -188,7 +179,7 @@
         }
         
         .status-label {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             display: inline-block;
             text-align: justify;
@@ -199,8 +190,8 @@
             background-color: #16a34a;
             color: white;
             border: none;
-            padding: 5px 10px;
-            font-size: 13px;
+            padding: 4px 8px;
+            font-size: 12.5px;
             font-weight: bold;
             border-radius: 4px;
         }
@@ -212,55 +203,56 @@
             background-color: #ffffff;
             border: 2px solid #a67c52;
             border-radius: 8px;
-            padding: 6px;
+            padding: 8px;
             display: flex;
             justify-content: space-around;
             align-items: center;
             box-sizing: border-box;
-            flex-shrink: 0;
+            margin-bottom: 5px;
         }
         .stat-box { text-align: center; }
-        .stat-box .title { font-size: 11px; color: #666; }
-        .stat-box .num { font-size: 17px; font-weight: bold; color: #4a2f1c; margin-top: 1px; }
+        .stat-box .title { font-size: 12px; color: #666; }
+        .stat-box .num { font-size: 18px; font-weight: bold; color: #4a2f1c; margin-top: 1px; }
 
         /* ==========================================
-           【區域三：徹底改造 - 彈出式歷史流水帳抽屜】
+           【區域三：彈出式歷史流水帳抽屜（完美相容自由滾動）】
            ========================================== */
         .drawer-toggle-btn {
             background-color: #4a2f1c;
             color: #fffdf5;
             width: 100%;
             border: none;
-            padding: 10px 0;
-            font-size: 14px;
+            padding: 12px 0; /* 加大好點選 */
+            font-size: 15px;
             font-weight: bold;
             text-align: center;
             border-radius: 8px 8px 0 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             cursor: pointer;
-            flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 5px;
+            margin-top: 10px;
         }
         
         .section-history {
             background-color: #e6dfc7;
             box-sizing: border-box;
             width: 100%;
-            height: 0px; /* 預設完全收合不佔空間 */
+            height: 0px; /* 預設收合 */
             overflow: hidden;
-            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 平滑彈出動畫 */
+            transition: height 0.3s ease;
             display: flex;
             flex-direction: column;
             border-left: 1px solid #a67c52;
             border-right: 1px solid #a67c52;
+            margin-bottom: 20px; /* 底部留白緩衝，防止被手機工具列擋住 */
         }
         
-        /* 當抽屜被打開時的身高（高達 220px 方便完整對帳） */
+        /* 打開時的高度 */
         .section-history.open {
-            height: 220px;
+            height: 250px;
             padding: 6px;
             border-bottom: 2px solid #a67c52;
         }
@@ -283,11 +275,11 @@
             color: #ffffff;
             position: sticky;
             top: 0;
-            padding: 5px 2px;
+            padding: 6px 2px;
             z-index: 10;
         }
         .history-table td {
-            padding: 7px 4px;
+            padding: 8px 4px;
             text-align: left;
             border-bottom: 1px solid #c8beab;
             overflow: hidden;
@@ -310,7 +302,7 @@
 
     <div class="dashboard-container">
         <div class="section-details">
-            <h2>📋 當前接單明細 (新單優先置頂放大)</h2>
+            <h2>📋 當前接單明細 (金字塔新單置頂)</h2>
             <div id="orders-container">正在下載最新出單資料...</div>
         </div>
 
@@ -359,7 +351,7 @@
 
         let completedOrderIds = JSON.parse(localStorage.getItem('completed_orders') || '[]');
 
-        // 🕒 核心功能：動態更新頂部 YYYY-MM-DD HH:MM:SS 時間
+        // 🕒 霸氣大時間同步時鐘
         function updateClock() {
             const now = new Date();
             const year = now.getFullYear();
@@ -373,9 +365,9 @@
                 `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         }
         setInterval(updateClock, 1000);
-        updateClock(); // 載入時立刻執行一次
+        updateClock();
 
-        // 📜 流水帳抽屜開合切換邏輯
+        // 流水帳開合
         function toggleHistoryDrawer() {
             const drawer = document.getElementById('history-drawer');
             const btnText = document.getElementById('btn-text');
@@ -386,10 +378,10 @@
             } else {
                 drawer.classList.add('open');
                 btnText.textContent = '收起對帳流水帳';
-                // 點開時自動幫忙滾動到最頂端
+                // 打開時，自動幫網頁平滑滾動到最底部，確保抽屜完整呈現
                 setTimeout(() => {
-                    document.querySelector('.table-scroll').scrollTop = 0;
-                }, 200);
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }, 100);
             }
         }
 
@@ -438,7 +430,6 @@
                 return;
             }
 
-            // 金字塔排序邏輯：未完成小單號在前（優先做舊單），已完成在大單號在後
             let pendingOrders = orders.filter(o => !completedOrderIds.includes(o.id)).sort((a, b) => a.id - b.id);
             let completedOrders = orders.filter(o => completedOrderIds.includes(o.id)).sort((a, b) => b.id - a.id);
             let sortedOrders = [...pendingOrders, ...completedOrders];
@@ -461,7 +452,6 @@
                     pendingIndex++;
                 }
 
-                // --- 1. 明細卡片 ---
                 const card = document.createElement('div');
                 card.className = `order-card ${rankClass} ${isFinished ? 'status-success' : ''}`;
                 
@@ -499,7 +489,6 @@
                 `;
                 container.appendChild(card);
 
-                // --- 2. 流水帳表格 ---
                 const tr = document.createElement('tr');
                 let summary = '';
                 if (Array.isArray(order.items) && order.items.length > 0) {
