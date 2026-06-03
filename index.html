@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>阿德師傅 - 手機直式點餐菜單 (防禦除錯版)</title>
+    <title>阿德師傅 - 手機直式點餐菜單 (強制重啟版)</title>
     
     <link rel="manifest" href="manifest.json">
     
@@ -199,7 +199,7 @@
                 <input type="checkbox" id="porchetta-洋蔥" name="porchetta-洋蔥" value="不要洋蔥">
                 <label for="porchetta-洋蔥">[ 不要洋蔥 ]</label>
             </div>
-            <button class="add-cart-btn" onclick="addToCart('Porchetta', this)">➕ 加入購物車</button>
+            <button class="add-cart-btn" data-product="Porchetta">➕ 加入購物車</button>
         </section>
 
         <section class="menu-item">
@@ -219,7 +219,7 @@
                 <input type="checkbox" id="sandwich-醬汁" name="sandwich-醬汁" value="醬汁分開">
                 <label for="sandwich-醬汁">[ 醬汁分開 ]</label>
             </div>
-            <button class="add-cart-btn" onclick="addToCart('La Dante Sandwich', this)">➕ 加入購物車</button>
+            <button class="add-cart-btn" data-product="La Dante Sandwich">➕ 加入購物車</button>
         </section>
         
         <section style="text-align: center; padding: 20px;">
@@ -232,7 +232,7 @@
             <span id="item-count">🛒 已點項目: 0 項</span>
             <span id="total-price">總金額: $0</span>
         </div>
-        <button class="confirm-order-btn" onclick="confirmOrder()">🚀 確認點餐（產生出單編號）</button>
+        <button class="confirm-order-btn" id="submit-order-btn">🚀 確認點餐（產生出單編號）</button>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -256,8 +256,26 @@
 
         let cart = { items: [], total: 0 };
 
-        // 🛠️ 終極防禦型加入購物車邏輯
-        function addToCart(item, btn) {
+        // 🛠️ 綁定按鈕點擊事件監聽（最穩定的底層寫法）
+        document.addEventListener('DOMContentLoaded', () => {
+            // 抓取所有的「加入購物車」按鈕
+            const buttons = document.querySelectorAll('.add-cart-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const productName = btn.getAttribute('data-product');
+                    chefAdeAddProduct(productName, btn);
+                });
+            });
+
+            // 抓取「確認點餐」按鈕
+            const submitBtn = document.getElementById('submit-order-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', confirmOrder);
+            }
+        });
+
+        // 🛠️ 全新獨立命名的點餐主功能，徹底跟舊快取切斷關係
+        function chefAdeAddProduct(item, btn) {
             try {
                 let price = 0;
                 let size = "";
@@ -265,7 +283,6 @@
                 
                 if (item === 'Porchetta') {
                     const largeRadio = document.getElementById('porchetta-large');
-                    // 🛡️ 防空機制：確認大份按鈕存在
                     if (largeRadio && largeRadio.checked) {
                         price = 300;
                         size = "(大份)";
@@ -292,30 +309,25 @@
                 cart.items.push(cartItem);
                 cart.total += price;
 
-                // 執行更新畫面
+                // 更新畫面
                 updateCartDisplay();
                 
-                // 按鈕文字更新
+                // 按鈕視覺反饋
                 if (btn) {
                     btn.textContent = "已加入！";
                     setTimeout(() => { btn.textContent = "➕ 加入購物車"; }, 1000);
                 }
 
             } catch (error) {
-                // 🚨 如果依然出錯，直接在手機上彈出警告，告訴我們確切原因
-                alert("加入購物車時發生JavaScript錯誤: " + error.message);
+                alert("執行發生錯誤: " + error.message);
             }
         }
 
         function updateCartDisplay() {
-            try {
-                const elCount = document.getElementById('item-count');
-                const elTotal = document.getElementById('total-price');
-                if (elCount) elCount.textContent = `🛒 已點項目: ${cart.items.length} 項`;
-                if (elTotal) elTotal.textContent = `總金額: $${cart.total}`;
-            } catch (err) {
-                alert("更新購物車畫面時出錯: " + err.message);
-            }
+            const elCount = document.getElementById('item-count');
+            const elTotal = document.getElementById('total-price');
+            if (elCount) elCount.textContent = `🛒 已點項目: ${cart.items.length} 項`;
+            if (elTotal) elTotal.textContent = `總金額: $${cart.total}`;
         }
 
         async function confirmOrder() {
