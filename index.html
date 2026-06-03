@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>阿德師傅 - 義式脆皮烤豬餐車</title>
     
-    <!-- PWA 的 Manifest 設定檔連結 -->
     <link rel="manifest" href="manifest.json">
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <style>
         /* 核心手機直式優化：無左右滑動，大字級 */
@@ -175,13 +176,11 @@
 <body>
 
     <div class="menu-container">
-        <!-- 頂部 Header -->
         <header>
             <div class="logo-placeholder">LOGO</div>
             <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
         </header>
 
-        <!-- 商品 1: 烤豬 (大/小) -->
         <section class="menu-item">
             <div class="item-header">
                 <div class="img-placeholder">Porchetta 圖</div>
@@ -205,7 +204,6 @@
             <button class="add-cart-btn" onclick="chefAddToCart('Porchetta', this)">➕ 加入購物車</button>
         </section>
 
-        <!-- 商品 2: 三明治 -->
         <section class="menu-item">
             <div class="item-header">
                 <div class="img-placeholder">Buting 圖</div>
@@ -231,7 +229,6 @@
         </section>
     </div>
 
-    <!-- 固定購物車底欄 -->
     <footer class="fixed-cart">
         <div class="cart-details">
             <span id="item-count">🛒 已點項目: 0 項</span>
@@ -240,9 +237,6 @@
         <button class="confirm-order-btn" onclick="confirmOrder()">🚀 確認點餐（產生出單編號）</button>
     </footer>
 
-    <!-- 🛠️ 關鍵優化：加上 async 與 defer，防止下載 SDK 時卡死網頁點擊 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async defer></script>
-    
     <script>
         // 暴力清除舊 PWA 死鎖快取，確保必定載入最新版
         if ('serviceWorker' in navigator) {
@@ -251,25 +245,24 @@
             });
         }
 
+        // 初始化 Supabase
         const SUPABASE_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
         let supabase = null;
 
-        // 監聽 SDK 是否載入完成，好了再初始化
-        window.addEventListener('load', () => {
-            try {
-                if (window.supabase) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log("Supabase 異步連線成功！");
-                }
-            } catch (e) {
-                console.error("Supabase 初始化延遲失敗:", e);
+        try {
+            // 由於頂部已經同步載入套件，這裡可以直接秒速初始化
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else if (typeof supabase !== 'undefined') {
+                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
-        });
+        } catch (e) {
+            console.error("Supabase 初始化失敗:", e);
+        }
 
         let cart = { items: [], total: 0 };
 
-        // 獨立命名的安全加入購物車函式
         function chefAddToCart(item, btn) {
             try {
                 let price = 0;
@@ -304,10 +297,8 @@
                 cart.items.push(cartItem);
                 cart.total += price;
 
-                // 更新底欄
                 updateCartDisplay();
                 
-                // 按鈕視覺反饋
                 if (btn) {
                     btn.textContent = "已加入！";
                     setTimeout(() => { btn.textContent = "➕ 加入購物車"; }, 1000);
@@ -326,8 +317,13 @@
         }
 
         async function confirmOrder() {
+            // 重新嘗試兜底初始化，防止萬一
+            if (!supabase && window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+
             if (!supabase) {
-                alert("資料庫連線還在背景建立中或網路超時，請稍等3秒再試一次！");
+                alert("連線依然受阻，請檢查手機是否開啟阻擋廣告套件(AdBlock)，或嘗試切換成4G/5G網路！");
                 return;
             }
             if (cart.items.length === 0) {
@@ -359,7 +355,7 @@
 
             } catch (err) {
                 console.error("Supabase 寫入錯誤:", err);
-                alert("點餐失敗，請確認資料庫 orders 是否已建立，且 RLS 寫入權限已開啟！");
+                alert("點餐失敗，請確認資料庫 orders 表是否允許匿名寫入(RLS Insert)！");
             }
         }
     </script>
