@@ -74,12 +74,11 @@
             font-size: 13px;
         }
 
-        /* 🚀 收攤結帳超顯眼按鈕區域 */
         .settle-wrapper {
             margin: 5px 0 10px 0;
         }
         .settle-btn {
-            background: linear-gradient(135deg, #e11d48, #be123c); /* 霸氣有質感的紅色 */
+            background: linear-gradient(135deg, #e11d48, #be123c);
             color: white;
             border: none;
             width: 100%;
@@ -99,6 +98,7 @@
             gap: 10px;
         }
 
+        /* 📐 精簡縮小版：明細框框優化 */
         .section-details {
             background-color: #ffffff;
             border: 3px solid #a67c52;
@@ -114,6 +114,15 @@
             padding-bottom: 4px;
         }
 
+        /* 📱 設定最大高度限制與獨立滾動：讓第 4 筆之後的單可以往下滾動檢視 */
+        #orders-container {
+            width: 100%;
+            max-height: 380px; /* 大約是 3 筆單的黃金總高度 */
+            overflow-y: auto; /* 允許垂直方向滾動 */
+            padding-right: 4px;
+        }
+
+        /* 👑 金字塔動態階梯卡片 */
         .order-card {
             background: #f7f3e9;
             border-left: 6px solid #d97706;
@@ -122,6 +131,7 @@
             box-sizing: border-box;
         }
         
+        /* 🥇 置頂第一張待做單 */
         .card-rank-0 {
             border-left-width: 9px;
             background: #fffdf5;
@@ -133,6 +143,7 @@
         .card-rank-0 .order-items-list { font-size: 14.5px; line-height: 1.4; }
         .card-rank-0 .order-item-note { font-size: 13px; padding: 4px 6px; }
 
+        /* 🥈 第二張待做單 */
         .card-rank-1 {
             border-left-width: 6px;
             background: #faf7f0;
@@ -143,6 +154,7 @@
         .card-rank-1 .order-items-list { font-size: 13.5px; }
         .card-rank-1 .order-item-note { font-size: 12px; }
 
+        /* 🥉 第三張以及之後的單 */
         .card-rank-rest {
             border-left-width: 4px;
             background: #f3eee1;
@@ -152,15 +164,6 @@
         .card-rank-rest .order-header { font-size: 13.5px; }
         .card-rank-rest .order-items-list { font-size: 12.5px; margin: 2px 0; }
         .card-rank-rest .order-item-note { font-size: 11px; padding: 2px 4px; }
-
-        .order-card.status-success {
-            border-left-color: #16a34a !important;
-            background: #f0fdf4 !important;
-            opacity: 0.6;
-            padding: 6px 10px !important;
-        }
-        .order-card.status-success .order-header { font-size: 13.5px !important; color: #16a34a !important; }
-        .order-card.status-success .order-items-list { font-size: 12.5px !important; }
 
         .order-header {
             display: flex;
@@ -180,14 +183,6 @@
             margin-top: 2px;
         }
         
-        .status-label {
-            font-size: 16px;
-            font-weight: bold;
-            display: inline-block;
-            text-align: justify;
-            text-align-last: justify;
-            width: 4.5rem; 
-        }
         .action-btn {
             background-color: #16a34a;
             color: white;
@@ -301,7 +296,7 @@
 
     <div class="dashboard-container">
         <div class="section-details">
-            <h2>📋 當前接單明細 (金字塔新單置頂)</h2>
+            <h2>📋 當前接單明細 (僅顯示未出餐單)</h2>
             <div id="orders-container">正在下載最新出單資料...</div>
         </div>
 
@@ -348,7 +343,6 @@
         const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-        // 🔄 智慧防護網：檢查日期，若換天了，自動洗掉昨天的舊紀錄，單號重頭計算！
         const todayStr = new Date().toLocaleDateString('zh-TW'); 
         const savedDate = localStorage.getItem('dashboard_date');
         if (savedDate !== todayStr) {
@@ -357,7 +351,7 @@
         }
 
         let completedOrderIds = JSON.parse(localStorage.getItem('completed_orders') || '[]');
-        let currentFetchedOrders = []; // 快取當下的訂單陣列，供匯出報表使用
+        let currentFetchedOrders = [];
 
         function updateClock() {
             const now = new Date();
@@ -429,78 +423,28 @@
             let completedCount = 0;
             let totalRevenue = 0;
 
-            if (orders.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">目前尚無人點餐。</div>';
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">暫無紀錄</td></tr>';
-                return;
-            }
-
+            // 🌟 關鍵改動：畫面上的「接單明細區」完全過濾掉已完成的單子，徹底隱藏！
             let pendingOrders = orders.filter(o => !completedOrderIds.includes(o.id)).sort((a, b) => a.id - b.id);
-            let completedOrders = orders.filter(o => completedOrderIds.includes(o.id)).sort((a, b) => b.id - a.id);
-            let sortedOrders = [...pendingOrders, ...completedOrders];
-
-            let pendingIndex = 0;
-
-            sortedOrders.forEach(order => {
+            
+            // 計算統計數據與流水帳（流水帳仍然會保留歷史供本日對帳）
+            orders.forEach(order => {
                 const formattedNum = String(order.id).padStart(3, '0');
                 const isFinished = completedOrderIds.includes(order.id);
-
-                let rankClass = "card-rank-rest";
 
                 if (isFinished) {
                     completedCount++;
                     totalRevenue += order.total_price;
                 } else {
                     pendingCount++;
-                    if (pendingIndex === 0) rankClass = "card-rank-0";
-                    else if (pendingIndex === 1) rankClass = "card-rank-1";
-                    pendingIndex++;
                 }
 
-                const card = document.createElement('div');
-                card.className = `order-card ${rankClass} ${isFinished ? 'status-success' : ''}`;
-                
-                let itemsHtml = '';
-                if (Array.isArray(order.items)) {
-                    order.items.forEach(i => {
-                        let customText = i.customization && i.customization.length > 0 ? ` [${i.customization.join(', ')}]` : '';
-                        let noteText = i.note ? `<span class="order-item-note">✍️ 客人備註：${i.note}</span>` : '';
-                        
-                        itemsHtml += `
-                            <li>
-                                <strong>${i.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'}</strong> ${i.size || ''} 
-                                <span style="color:#b45309;">${customText}</span>
-                                ${noteText}
-                            </li>`;
-                    });
-                }
-
-                let actionButtonHtml = '';
-                if (!isFinished) {
-                    actionButtonHtml = `<button class="action-btn" onclick="localMarkAsComplete(${order.id})">✔️ 完成出餐</button>`;
-                } else {
-                    actionButtonHtml = `<span class="status-label" style="color: #16a34a;">交易成功</span>`;
-                }
-
-                card.innerHTML = `
-                    <div class="order-header">
-                        <span>單號 #${formattedNum} ${!isFinished && rankClass==='card-rank-0'?'🔥 優先製作':''}</span>
-                        <span style="color:#b45309;">$${order.total_price}</span>
-                    </div>
-                    <ul class="order-items-list">${itemsHtml}</ul>
-                    <div style="text-align: right; margin-top: 4px;">
-                        ${actionButtonHtml}
-                    </div>
-                `;
-                container.appendChild(card);
-
+                // 填入底部歷史流水帳
                 const tr = document.createElement('tr');
                 let summary = '';
                 if (Array.isArray(order.items) && order.items.length > 0) {
                     summary = order.items.map(i => i.item === 'Porchetta' ? '烤豬' : '三明治').join('+');
                     if (order.items.some(i => i.note)) summary += '(備註)';
                 }
-
                 tr.innerHTML = `
                     <td><strong>#${formattedNum}</strong></td>
                     <td style="color:#555;">${summary}</td>
@@ -508,6 +452,50 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            // 呈現未完成訂單卡片 (依舊維持金字塔前三階梯效果)
+            if (pendingOrders.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">🎉 太棒了！目前沒有待做訂單。</div>';
+            } else {
+                pendingOrders.forEach((order, index) => {
+                    const formattedNum = String(order.id).padStart(3, '0');
+                    
+                    // 根據目前「未完成」的順序給予金字塔階梯樣式
+                    let rankClass = "card-rank-rest";
+                    if (index === 0) rankClass = "card-rank-0";
+                    else if (index === 1) rankClass = "card-rank-1";
+
+                    const card = document.createElement('div');
+                    card.className = `order-card ${rankClass}`;
+                    
+                    let itemsHtml = '';
+                    if (Array.isArray(order.items)) {
+                        order.items.forEach(i => {
+                            let customText = i.customization && i.customization.length > 0 ? ` [${i.customization.join(', ')}]` : '';
+                            let noteText = i.note ? `<span class="order-item-note">✍️ 客人備註：${i.note}</span>` : '';
+                            
+                            itemsHtml += `
+                                <li>
+                                    <strong>${i.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'}</strong> ${i.size || ''} 
+                                    <span style="color:#b45309;">${customText}</span>
+                                    ${noteText}
+                                </li>`;
+                        });
+                    }
+
+                    card.innerHTML = `
+                        <div class="order-header">
+                            <span>單號 #${formattedNum} ${index === 0 ? '🔥 優先製作' : ''}</span>
+                            <span style="color:#b45309;">$${order.total_price}</span>
+                        </div>
+                        <ul class="order-items-list">${itemsHtml}</ul>
+                        <div style="text-align: right; margin-top: 4px;">
+                            <button class="action-btn" onclick="localMarkAsComplete(${order.id})">✔️ 完成出餐</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
 
             document.getElementById('stat-pending').textContent = pendingCount;
             document.getElementById('stat-completed').textContent = completedCount;
@@ -523,9 +511,7 @@
             fetchOrders();
         }
 
-        // 📊 核心新功能：一鍵自動加總、生成並下載營業 Excel 表格
         function exportDailyReport() {
-            // 過濾出今天真正「完成交易」的單子
             let finishedOrders = currentFetchedOrders.filter(o => completedOrderIds.includes(o.id));
             
             if (finishedOrders.length === 0) {
@@ -534,14 +520,12 @@
             }
 
             let totalSum = 0;
-            // 建立 CSV 內容表頭，加了 BOM (\uFEFF) 確保手機用 Excel 開啟不變亂碼
             let csvContent = "\uFEFF單號,點餐詳細內容,每單金額\n";
 
             finishedOrders.forEach(order => {
                 const formattedNum = String(order.id).padStart(3, '0');
                 totalSum += order.total_price;
 
-                // 組合詳細品項與備註，用空白隔開
                 let itemSummary = "";
                 if (Array.isArray(order.items)) {
                     itemSummary = order.items.map(i => {
@@ -552,28 +536,24 @@
                     }).join(' + ');
                 }
 
-                // 寫入一行資料，品項用引號包起來防範逗號干擾格式
                 csvContent += `#${formattedNum},"${itemSummary}",$${order.total_price}\n`;
             });
 
-            // 在最底下自動加總
             csvContent += `\n本日總結算金額,,, $${totalSum}\n`;
             csvContent += `總成交筆數,,, ${finishedOrders.length} 筆\n`;
 
-            // 產生檔案下載連結
             let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             let link = document.createElement("a");
             
-            // 用當下日期來當檔名，好整理不混淆
             const dateStr = new Date().toISOString().split('T')[0];
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `阿德師傅營業報表_${dateStr}.csv`);
+            link.setAttribute("download", `阿德師擺攤營業報表_${dateStr}.csv`);
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            alert(`🎉 結帳成功！\n本日營收總計: $${totalSum}\n營業表格已自動下載至手機檔案中！`);
+            alert(`🎉 結帳成功！\n本日營收總計: $${totalSum}\n營業表格已自動下載！`);
         }
 
         setInterval(fetchOrders, 6000);
