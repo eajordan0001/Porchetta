@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>阿德師傅 - 手機直式點餐菜單 (除錯版)</title>
+    <title>阿德師傅 - 手機直式點餐菜單 (Supabase版)</title>
     <style>
         /* 核心手機直式優化：無左右滑動，大字級 */
         body {
@@ -126,7 +126,7 @@
             text-align: center;
         }
 
-        /* 固定購物車底欄 (20px字體) - 已移除外帶內用區塊 */
+        /* 固定購物車底欄 (20px字體) */
         .fixed-cart {
             position: fixed;
             bottom: 0;
@@ -146,7 +146,7 @@
         }
         .cart-details {
             display: flex;
-            flex-direction: column; /* 直式排列 */
+            flex-direction: column; 
             align-items: flex-start;
         }
         .cart-details span {
@@ -169,17 +169,16 @@
         }
 
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <div class="menu-container">
-        <!-- 模擬圖像 Header -->
         <header>
             <div class="logo-placeholder">LOGO</div>
             <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
         </header>
 
-        <!-- 商品 1: 烤豬 (大/小) -->
         <section class="menu-item">
             <div class="item-header">
                 <div class="img-placeholder">Porchetta 圖</div>
@@ -190,7 +189,6 @@
                 傳承義大利百年傳統，外皮嘎嘣脆、肉質鮮嫩多汁！使用迷迭香與野茴香特製。
             </p>
 
-            <!-- 項目規格選擇 -->
             <div class="size-select">
                 <input type="radio" id="porchetta-large" name="porchetta-size" value="300" checked>
                 <label for="porchetta-large">(大) $300</label>
@@ -198,7 +196,6 @@
                 <label for="porchetta-small">(小) $200</label>
             </div>
 
-            <!-- 客製化按鈕 -->
             <div class="custom-options">
                 <input type="checkbox" id="porchetta-辣" name="porchetta-辣" value="大辣">
                 <label for="porchetta-辣">[ 大辣 ]</label>
@@ -209,7 +206,6 @@
             <button class="add-cart-btn" onclick="addToCart('Porchetta')">➕ 加入購物車</button>
         </section>
 
-        <!-- 商品 2: 三明治 -->
         <section class="menu-item">
             <div class="item-header">
                 <div class="img-placeholder">Buting 圖</div>
@@ -224,7 +220,6 @@
                 單一售價: $170
             </p>
 
-            <!-- 客製化按鈕 -->
             <div class="custom-options">
                 <input type="checkbox" id="sandwich-辣" name="sandwich-辣" value="大辣">
                 <label for="sandwich-辣">[ 大辣 ]</label>
@@ -235,35 +230,33 @@
             <button class="add-cart-btn" onclick="addToCart('La Dante Sandwich')">➕ 加入購物車</button>
         </section>
         
-        <!-- 底部裝飾 -->
         <section style="text-align: center; padding: 20px;">
             <p style="font-style: italic;">Simple. Perfect.</p>
         </section>
 
     </div>
 
-    <!-- 固定購物車底欄 ( Fixed Bottom ) -->
     <footer class="fixed-cart">
         <div class="cart-details">
             <span id="item-count">🛒 已點項目: 0 項</span>
             <span id="total-price">總金額: $0</span>
         </div>
-        <!-- 外帶內用選擇已移除 -->
         <button class="confirm-order-btn" onclick="confirmOrder()">🚀 確認點餐（產生出單編號）</button>
     </footer>
 
     <script>
-        // 前端模擬 JavaScript 交互 - 已修正加入購物車邏輯
-        let cart = { items: [], total: 0 };
-        let currentOrderNumber = 0; // 模擬出單編號
+        // 【已嵌入金鑰】初始化 Supabase 連線
+        const SUPABASE_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        let cart = { items: [], total: 0 };
+
+        // 加入購物車核心邏輯 (已修復)
         function addToCart(item) {
             let price = 0;
             let size = "";
             let customization = [];
-
-            // 修正：修正了邏輯錯誤。原本代碼可能未正確獲取所選選項。
-            // 修正後的邏輯確保根據正確的選擇獲取價格和客製化選項。
             
             if (item === 'Porchetta') {
                 const largeRadio = document.getElementById('porchetta-large');
@@ -274,7 +267,6 @@
                     price = 200;
                     size = "(小份)";
                 }
-
                 if (document.getElementById('porchetta-辣').checked) customization.push('大辣');
                 if (document.getElementById('porchetta-洋蔥').checked) customization.push('不要洋蔥');
                 
@@ -291,7 +283,7 @@
 
             updateCartDisplay();
             
-            // 簡單的反饋：更改按鈕文字
+            // 按鈕點擊視覺回饋
             const btn = event.target;
             btn.textContent = "已加入！";
             setTimeout(() => {
@@ -299,39 +291,51 @@
             }, 1000);
         }
 
+        // 更新底欄
         function updateCartDisplay() {
             document.getElementById('item-count').textContent = `🛒 已點項目: ${cart.items.length} 項`;
             document.getElementById('total-price').textContent = `總金額: $${cart.total}`;
         }
 
-        function confirmOrder() {
+        // 【極重要】連動 Supabase 資料庫的確認點餐邏輯
+        async function confirmOrder() {
             if (cart.items.length === 0) {
                 alert("購物車是空的，請先加入項目！");
                 return;
             }
 
-            currentOrderNumber++;
-            let formattedOrderNumber = String(currentOrderNumber).padStart(3, '0');
-
-            // 模擬將資料傳送至雲端/主廚看板，並寫入 Google Sheets
-            let orderData = {
-                orderNumber: formattedOrderNumber,
-                cart: cart,
-                // 此處將模擬傳送動作
+            // 打包準備送進 Supabase 的欄位資料
+            const orderData = {
+                total_price: cart.total,
+                items: cart.items // 直接將點餐陣列傳給 JSONB 欄位
             };
 
-            console.log("模擬送出訂單資料:", orderData);
+            try {
+                // 將訂單資料直接 Insert 進名為 orders 的資料表，並撈回自動產生的 id
+                const { data, error } = await supabase
+                    .from('orders')
+                    .insert([orderData])
+                    .select();
 
-            // 模擬客人端畫面
-            alert(`點餐成功！您的編號為 #${formattedOrderNumber}\n請依編號至餐車取餐。`);
-            
-            // 重置購物車
-            cart = { items: [], total: 0 };
-            updateCartDisplay();
-            // 重置客製化選項
-            document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
+                if (error) throw error;
+
+                // 成功寫入後，利用資料庫自動跳號的 id 當作出單編號
+                const dbId = data[0].id;
+                const formattedOrderNumber = String(dbId).padStart(3, '0');
+
+                // 彈出成功叫號畫面
+                alert(`點餐成功！您的編號為 #${formattedOrderNumber}\n請依編號至餐車取餐。`);
+                
+                // 重置購物車與勾選狀態
+                cart = { items: [], total: 0 };
+                updateCartDisplay();
+                document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
+
+            } catch (err) {
+                console.error("Supabase 寫入錯誤:", err);
+                alert("點餐失敗，請確認資料庫 orders 是否已建立，且 RLS 設定已關閉！");
+            }
         }
-
     </script>
 </body>
 </html>
