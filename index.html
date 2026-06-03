@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>阿德師傅 - 手機直式點餐菜單 (PWA防錯版)</title>
+    <title>阿德師傅 - 手機直式點餐菜單 (PWA終極修復版)</title>
     
-    <!-- PWA 的 Manifest 設定檔連結 -->
     <link rel="manifest" href="manifest.json">
     
     <style>
@@ -23,7 +22,7 @@
             background-color: #f7f3e9; 
             border: 15px solid #a67c52; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            padding-bottom: 100px; 
+            padding-bottom: 120px; /* 加大底部留白，避免擋到最後一項商品 */
             position: relative;
         }
 
@@ -175,13 +174,11 @@
 <body>
 
     <div class="menu-container">
-        <!-- 頂部 Header -->
         <header>
             <div class="logo-placeholder">LOGO</div>
             <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
         </header>
 
-        <!-- 商品 1: 烤豬 (大/小) -->
         <section class="menu-item">
             <div class="item-header">
                 <div class="img-placeholder">Porchetta 圖</div>
@@ -202,10 +199,9 @@
                 <input type="checkbox" id="porchetta-洋蔥" name="porchetta-洋蔥" value="不要洋蔥">
                 <label for="porchetta-洋蔥">[ 不要洋蔥 ]</label>
             </div>
-            <button class="add-cart-btn" onclick="addToCart('Porchetta')">➕ 加入購物車</button>
+            <button class="add-cart-btn" onclick="addToCart('Porchetta', this)">➕ 加入購物車</button>
         </section>
 
-        <!-- 商品 2: 三明治 -->
         <section class="menu-item">
             <div class="item-header">
                 <div class="img-placeholder">Buting 圖</div>
@@ -223,7 +219,7 @@
                 <input type="checkbox" id="sandwich-醬汁" name="sandwich-醬汁" value="醬汁分開">
                 <label for="sandwich-醬汁">[ 醬汁分開 ]</label>
             </div>
-            <button class="add-cart-btn" onclick="addToCart('La Dante Sandwich')">➕ 加入購物車</button>
+            <button class="add-cart-btn" onclick="addToCart('La Dante Sandwich', this)">➕ 加入購物車</button>
         </section>
         
         <section style="text-align: center; padding: 20px;">
@@ -231,7 +227,6 @@
         </section>
     </div>
 
-    <!-- 固定購物車底欄 -->
     <footer class="fixed-cart">
         <div class="cart-details">
             <span id="item-count">🛒 已點項目: 0 項</span>
@@ -240,7 +235,6 @@
         <button class="confirm-order-btn" onclick="confirmOrder()">🚀 確認點餐（產生出單編號）</button>
     </footer>
 
-    <!-- 🟢 將 SDK 與 腳本移到身體最底部載入，防止頁面死白 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // PWA Service Worker 註冊腳本
@@ -260,12 +254,13 @@
         try {
             supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (e) {
-            console.error("Supabase 初始化失敗，請檢查網路或SDK是否被阻擋:", e);
+            console.error("Supabase 初始化失敗:", e);
         }
 
         let cart = { items: [], total: 0 };
 
-        function addToCart(item) {
+        // 🛠️ 修正：接收明確的 btn 參數，徹底解決跨瀏覽器抓不到點擊目標的問題
+        function addToCart(item, btn) {
             let price = 0;
             let size = "";
             let customization = [];
@@ -293,13 +288,16 @@
             cart.items.push(cartItem);
             cart.total += price;
 
+            // 更新底欄數字
             updateCartDisplay();
             
-            const btn = event.target;
-            btn.textContent = "已加入！";
-            setTimeout(() => {
-                btn.textContent = "➕ 加入購物車";
-            }, 1000);
+            // 順暢更新按鈕文字回饋
+            if (btn) {
+                btn.textContent = "已加入！";
+                setTimeout(() => {
+                    btn.textContent = "➕ 加入購物車";
+                }, 1000);
+            }
         }
 
         function updateCartDisplay() {
