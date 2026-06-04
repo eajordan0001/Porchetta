@@ -113,17 +113,17 @@
             padding-bottom: 4px;
         }
 
-        /* 🛠️ 【除錯關鍵 1】優化滾動容器：精準調降最大高度，卡死在 3 筆單的空間 */
+        /* 🛠️ 強制高度鎖定：完美呈現 3 筆，第 4 筆後一定切掉並啟用滾動 */
         #orders-container {
             width: 100%;
-            max-height: 310px; /* 調低高度，強制讓第 4 筆溢出產生滾動 */
-            overflow-y: scroll; /* 強制啟動滾動軸檢視 */
-            -webkit-overflow-scrolling: touch; /* 讓手機用手指滑動時更順暢 */
+            max-height: 290px; 
+            overflow-y: scroll; 
+            -webkit-overflow-scrolling: touch; 
             padding-right: 4px;
             box-sizing: border-box;
         }
 
-        /* 👑 金字塔動態階梯卡片樣式微調（稍微緊湊，避免佔空間） */
+        /* 卡片金字塔視覺比例優化 */
         .order-card {
             background: #f7f3e9;
             border-left: 6px solid #d97706;
@@ -132,7 +132,6 @@
             box-sizing: border-box;
         }
         
-        /* 🥇 第一張（優先） */
         .card-rank-0 {
             border-left-width: 9px;
             background: #fffdf5;
@@ -144,7 +143,6 @@
         .card-rank-0 .order-items-list { font-size: 14px; line-height: 1.3; }
         .card-rank-0 .order-item-note { font-size: 12px; padding: 3px 6px; }
 
-        /* 🥈 第二張 */
         .card-rank-1 {
             border-left-width: 6px;
             background: #faf7f0;
@@ -155,7 +153,6 @@
         .card-rank-1 .order-items-list { font-size: 13px; }
         .card-rank-1 .order-item-note { font-size: 11.5px; }
 
-        /* 🥉 第三張及之後的單 */
         .card-rank-rest {
             border-left-width: 4px;
             background: #f3eee1;
@@ -188,8 +185,8 @@
             background-color: #16a34a;
             color: white;
             border: none;
-            padding: 4px 8px;
-            font-size: 12px;
+            padding: 5px 10px;
+            font-size: 12.5px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
@@ -278,6 +275,68 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        /* 📱 Safari 相容結帳彈窗樣式 */
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .report-content {
+            background-color: #fffdf8;
+            border: 3px solid #4a2f1c;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .report-header {
+            background-color: #4a2f1c;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+        .report-body {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #fcf9f2;
+            color: #2b1b10;
+        }
+        .report-footer {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #e2d9c5;
+            background-color: #f4eee1;
+            border-radius: 0 0 8px 8px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-copy { background-color: #16a34a; color: white; }
+        .btn-close { background-color: #78716c; color: white; }
     </style>
 </head>
 <body>
@@ -288,7 +347,7 @@
     </div>
 
     <div class="settle-wrapper">
-        <button class="settle-btn" onclick="exportDailyReport()">💰 點我完成今日出車結帳 (自動加總匯出報表)</button>
+        <button class="settle-btn" onclick="generateSafariReport()">💰 點我完成今日出車結帳 (自動加總彈出報表)</button>
     </div>
 
     <div class="controls">
@@ -298,7 +357,7 @@
 
     <div class="dashboard-container">
         <div class="section-details">
-            <h2>📋 當前接單明細 (僅顯示未出餐單)</h2>
+            <h2>📋 當前接單明細 (限留3筆，其餘滑動檢視)</h2>
             <div id="orders-container">正在下載最新出單資料...</div>
         </div>
 
@@ -341,6 +400,17 @@
         </div>
     </div>
 
+    <div class="report-modal" id="safari-report-modal">
+        <div class="report-content">
+            <div class="report-header">📋 阿德師擺攤營業結帳報表</div>
+            <div class="report-body" id="report-text-content"></div>
+            <div class="report-footer">
+                <button class="modal-btn btn-copy" onclick="copyReportText()">📋 複製文字(傳LINE)</button>
+                <button class="modal-btn btn-close" onclick="closeReportModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
@@ -363,9 +433,7 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('current-time').textContent = 
-                `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            document.getElementById('current-time').textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -373,16 +441,13 @@
         function toggleHistoryDrawer() {
             const drawer = document.getElementById('history-drawer');
             const btnText = document.getElementById('btn-text');
-            
             if (drawer.classList.contains('open')) {
                 drawer.classList.remove('open');
                 btnText.textContent = '點開對帳流水帳';
             } else {
                 drawer.classList.add('open');
                 btnText.textContent = '收起對帳流水帳';
-                setTimeout(() => {
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                }, 100);
+                setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 100);
             }
         }
 
@@ -402,7 +467,6 @@
 
                 if (!response.ok) throw new Error("後台讀取失敗");
                 currentFetchedOrders = await response.json();
-
                 renderDashboard(currentFetchedOrders);
 
                 document.getElementById('sync-status').textContent = '● 即時連線中';
@@ -425,7 +489,7 @@
             let completedCount = 0;
             let totalRevenue = 0;
 
-            // 🌟【除錯關鍵 2】完全不把已完成的單子放進 pending 陣列，確保畫面上按完「完成出餐」它會立馬100%隱藏消失！
+            // 🌟 100% 繞過資料庫權限：直接在前端使用 LocalStorage 陣列完美過濾隱藏
             let pendingOrders = orders.filter(o => !completedOrderIds.includes(o.id)).sort((a, b) => a.id - b.id);
             
             orders.forEach(order => {
@@ -439,12 +503,11 @@
                     pendingCount++;
                 }
 
-                // 底部的歷史對帳流水帳（維持不動，供收攤核對）
                 const tr = document.createElement('tr');
                 let summary = '';
                 if (Array.isArray(order.items) && order.items.length > 0) {
                     summary = order.items.map(i => i.item === 'Porchetta' ? '烤豬' : '三明治').join('+');
-                    if (order.items.some(i => i.note)) summary += '(備註)';
+                    if (order.items.some(i => i.note)) summary += '(註)';
                 }
                 tr.innerHTML = `
                     <td><strong>#${formattedNum}</strong></td>
@@ -454,14 +517,13 @@
                 tbody.appendChild(tr);
             });
 
-            // 呈現未完成的極簡排隊單
             if (pendingOrders.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#16a34a; padding:20px; font-weight:bold;">🎉 太棒了！目前沒有待做訂單。</div>';
+                container.innerHTML = '<div style="text-align:center; color:#16a34a; padding:30px; font-weight:bold; font-size:15px;">🎉 今日單全出完囉！主廚辛苦了！</div>';
             } else {
                 pendingOrders.forEach((order, index) => {
                     const formattedNum = String(order.id).padStart(3, '0');
                     
-                    // 動態設定前三筆金字塔階梯樣式，第 4 筆後（index >= 3）統一維持最不佔空間的 rest 樣式
+                    // 階梯樣式：只給未出餐的前三筆，第四筆（Index 3）以後維持縮小 rest 狀態，隱藏在滾動區域內
                     let rankClass = "card-rank-rest";
                     if (index === 0) rankClass = "card-rank-0";
                     else if (index === 1) rankClass = "card-rank-1";
@@ -473,8 +535,7 @@
                     if (Array.isArray(order.items)) {
                         order.items.forEach(i => {
                             let customText = i.customization && i.customization.length > 0 ? ` [${i.customization.join(', ')}]` : '';
-                            let noteText = i.note ? `<span class="order-item-note">✍️ 客人備註：${i.note}</span>` : '';
-                            
+                            let noteText = i.note ? `<span class="order-item-note">✍️ 備註：${i.note}</span>` : '';
                             itemsHtml += `
                                 <li>
                                     <strong>${i.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'}</strong> ${i.size || ''} 
@@ -486,7 +547,7 @@
 
                     card.innerHTML = `
                         <div class="order-header">
-                            <span>單號 #${formattedNum} ${index === 0 ? '🔥 優先製作' : ''}</span>
+                            <span>單號 #${formattedNum} ${index === 0 ? '🔥 優先' : ''}</span>
                             <span style="color:#b45309;">$${order.total_price}</span>
                         </div>
                         <ul class="order-items-list">${itemsHtml}</ul>
@@ -504,24 +565,30 @@
             document.getElementById('history-count').textContent = `共 ${orders.length} 筆`;
         }
 
+        // 🌟 點擊出餐直接記錄到手機，100% 成功，絕不彈出 RLS 權限失敗！
         function localMarkAsComplete(orderId) {
             if (!completedOrderIds.includes(orderId)) {
                 completedOrderIds.push(orderId);
                 localStorage.setItem('completed_orders', JSON.stringify(completedOrderIds));
             }
-            fetchOrders();
+            renderDashboard(currentFetchedOrders); // 按完瞬間在前端隱藏更新
         }
 
-        function exportDailyReport() {
+        // 🍏 Safari 專用不閃退、免 Blob 彈窗結帳報表產出器
+        function generateSafariReport() {
             let finishedOrders = currentFetchedOrders.filter(o => completedOrderIds.includes(o.id));
-            
             if (finishedOrders.length === 0) {
-                alert("目前今日尚無已完成出餐的訂單，無法結帳喔！");
+                alert("目前今日尚無已完成出餐的訂單，沒辦法幫您結帳計算唷！");
                 return;
             }
 
             let totalSum = 0;
-            let csvContent = "\uFEFF單號,點餐詳細內容,每單金額\n";
+            const dateStr = new Date().toISOString().split('T')[0];
+            
+            let textReport = `=========================\n`;
+            textReport += `  阿德師擺攤營業結帳報表  \n`;
+            textReport += `  結帳日期：${dateStr}\n`;
+            textReport += `=========================\n\n`;
 
             finishedOrders.forEach(order => {
                 const formattedNum = String(order.id).padStart(3, '0');
@@ -530,31 +597,35 @@
                 let itemSummary = "";
                 if (Array.isArray(order.items)) {
                     itemSummary = order.items.map(i => {
-                        let details = `${i.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'}(${i.size || '原尺寸'})`;
+                        let details = `${i.item === 'Porchetta' ? '烤豬' : '三明治'}(${i.size || '規'})`;
                         if (i.customization && i.customization.length > 0) details += `[${i.customization.join(' ')}]`;
                         if (i.note) details += `[備註:${i.note}]`;
                         return details;
                     }).join(' + ');
                 }
-
-                csvContent += `#${formattedNum},"${itemSummary}",$${order.total_price}\n`;
+                textReport += `#${formattedNum} | $${order.total_price}\n   ${itemSummary}\n-------------------------\n`;
             });
 
-            csvContent += `\n本日總結算金額,,, $${totalSum}\n`;
-            csvContent += `總成交筆數,,, ${finishedOrders.length} 筆\n`;
+            textReport += `\n💰 本日總結算金額：$${totalSum}\n`;
+            textReport += `📦 總成交筆數：${finishedOrders.length} 筆\n`;
+            textReport += `=========================`;
 
-            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            let link = document.createElement("a");
-            
-            const dateStr = new Date().toISOString().split('T')[0];
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `阿德師擺攤營業報表_${dateStr}.csv`);
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // 將報表塞入彈窗並打開
+            document.getElementById('report-text-content').innerHTML = textReport.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+            document.getElementById('safari-report-modal').style.display = 'flex';
+        }
 
-            alert(`🎉 結帳成功！\n本日營收總計: $${totalSum}\n營業表格已自動下載！`);
+        function copyReportText() {
+            const rawText = document.getElementById('report-text-content').innerText;
+            navigator.clipboard.writeText(rawText).then(() => {
+                alert("📋 報表已成功複製到剪貼簿！您可以打開 LINE 直接貼上傳給老婆或自己留存囉！");
+            }).catch(err => {
+                alert("手機暫時不支援自動複製，您可以直接對著彈窗畫面進行截圖保存喔！");
+            });
+        }
+
+        function closeReportModal() {
+            document.getElementById('safari-report-modal').style.display = 'none';
         }
 
         setInterval(fetchOrders, 6000);
