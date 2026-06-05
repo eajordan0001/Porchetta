@@ -133,7 +133,7 @@
             bottom: -100%; /* 預設藏在螢幕下方 */
             left: 0;
             width: 100%;
-            max-height: 60%;
+            max-height: 75%; /* 稍微拉高一點，容納基本資料欄位 */
             background-color: #f7f3e9;
             border-top: 5px solid #a67c52;
             border-radius: 16px 16px 0 0;
@@ -157,6 +157,53 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* ✨ 新增：客戶基本資料區域樣式 */
+        .customer-info-block {
+            background-color: #e6dfc7;
+            border: 2px dashed #a67c52;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .customer-info-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-label { font-size: 14px; font-weight: bold; min-width: 85px; }
+        .customer-input-text {
+            border: 1px solid #a67c52;
+            border-radius: 4px;
+            padding: 6px;
+            font-size: 14px;
+            width: 100px;
+            color: #4a2f1c;
+        }
+        /* 改良稱謂單選樣式 */
+        .gender-options { display: flex; gap: 5px; }
+        .gender-options label {
+            padding: 4px 10px;
+            background-color: #faf8f5;
+            border: 1px solid #a67c52;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .gender-options input:checked + label {
+            background-color: #a67c52;
+            color: white;
+        }
+        .gender-options input { display: none; }
 
         /* 購物車內單一項目卡片 */
         .cart-list-item {
@@ -256,8 +303,27 @@
             <span>🛒 已點明細清單</span>
             <span style="font-size: 14px; color: #666;" onclick="toggleCartPopup()">收合 🔽</span>
         </div>
-        <div id="popup-items-container">
+
+        <div class="customer-info-block">
+            <div class="customer-info-title">📋 填寫取餐核對資料（必填）</div>
+            <div class="info-row">
+                <div class="info-label">客戶姓氏：</div>
+                <input type="text" id="cust-name" class="customer-input-text" placeholder="例如：陳" maxlength="5">
+                <div class="gender-options">
+                    <input type="radio" id="gender-mr" name="cust-gender" value="先生" checked>
+                    <label for="gender-mr">先生</label>
+                    <input type="radio" id="gender-ms" name="cust-gender" value="小姐">
+                    <label for="gender-ms">小姐</label>
+                </div>
             </div>
+            <div class="info-row">
+                <div class="info-label">手機末三碼：</div>
+                <input type="tel" id="cust-phone" class="customer-input-text" placeholder="123" pattern="[0-9]{3}" maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                <span style="font-size: 12px; color: #666;">（限3位數字）</span>
+            </div>
+        </div>
+
+        <div id="popup-items-container"></div>
     </div>
 
     <footer class="fixed-cart">
@@ -365,7 +431,6 @@
 
             if (cart.items.length === 0) {
                 container.innerHTML = '<div style="text-align:center; color:#888; padding:10px;">購物車空空如也～</div>';
-                // 如果在開啟狀態下刪光了，自動關閉視窗
                 document.getElementById('cartPopup').classList.remove('open');
                 document.getElementById('cartOverlay').style.display = 'none';
                 return;
@@ -405,15 +470,12 @@
 
         // ❌ 刪除獨立單筆品項
         function deleteCartItem(id) {
-            // 過濾掉被選中刪除的那個 id 項目
             cart.items = cart.items.filter(i => i.id !== id);
-            // 重新計算並更新畫面
             calculateTotal();
         }
 
         // 🚀 送出訂單至資料庫
         async function confirmOrder(event) {
-            // 防止點擊點餐按鈕時，觸發到外層 footer 的 toggleCartPopup 彈窗事件
             if(event) event.stopPropagation();
 
             if (cart.items.length === 0) {
@@ -421,9 +483,30 @@
                 return;
             }
 
+            // ✨【資料驗證】檢查基本資料是否有填寫
+            const nameInput = document.getElementById('cust-name').value.trim();
+            const phoneInput = document.getElementById('cust-phone').value.trim();
+            const genderInput = document.querySelector('input[name="cust-gender"]:checked').value;
+
+            if (!nameInput) {
+                alert("請填寫您的姓氏，以便現場叫號取餐喔！");
+                document.getElementById('cust-name').focus();
+                return;
+            }
+            if (phoneInput.length !== 3) {
+                alert("請填寫完整的手機末三碼數字（共3碼）！");
+                document.getElementById('cust-phone').focus();
+                return;
+            }
+
+            // 組合客戶標記字串，例如: "陳先生(321)"
+            const customerInfoStr = `${nameInput}${genderInput}(${phoneInput})`;
+
             const orderData = {
                 total_price: cart.total,
-                items: cart.items // 這裡面現在包含客人的客製勾選、價格、以及全新的顧客隨單「note」備註囉！
+                items: cart.items,
+                // ✨ 將客戶基本資料包進 JSON 傳給 Supabase 的 customer_info 欄位（防呆相容）
+                customer_info: customerInfoStr 
             };
 
             try {
@@ -447,10 +530,14 @@
                 const dbId = data[0].id;
                 const formattedOrderNumber = String(dbId).padStart(3, '0');
 
-                alert(`點餐成功！您的編號為 #${formattedOrderNumber}\n請依編號至餐車取餐。`);
+                // 取餐提示加入客戶稱謂，更具親切感！
+                alert(`點餐成功！\n\n您的取餐編號為：#${formattedOrderNumber}\n取餐核對身分：${customerInfoStr}\n\n請依編號與稱謂至餐車取餐。`);
                 
-                // 成功後將狀態回歸並關閉彈出窗
+                // 成功後將狀態回歸、清空輸入框並關閉彈出窗
                 cart = { items: [], total: 0 };
+                document.getElementById('cust-name').value = '';
+                document.getElementById('cust-phone').value = '';
+                document.getElementById('gender-mr').checked = true;
                 calculateTotal();
                 document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
 
