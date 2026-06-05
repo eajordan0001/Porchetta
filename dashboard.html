@@ -152,7 +152,8 @@
             try {
                 document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
                 
-                // 1. 一次性撈取當天及之前所有待處理的訂單（依照建立時間 asc 排序，最舊、最先點的在最上面）
+                // 1. 🚀【全新極簡查詢】：徹底移除容易引發防火牆封鎖的時間冒號過濾條件！
+                // 只抓狀態是 pending 的訂單，按建立時間升冪（asc）排序，最舊、最先點的在最上面。
                 const response = await fetch(`${API_URL}?status=eq.pending&order=created_at.asc`, {
                     method: 'GET',
                     headers: {
@@ -161,7 +162,7 @@
                     }
                 });
 
-                if (!response.ok) throw new Error("資料庫連線失敗");
+                if (!response.ok) throw new Error("資料庫連線被拒絕");
                 const pendingOrders = await response.json();
                 
                 // 2. 如果完全沒訂單，直接去渲染空畫面
@@ -171,37 +172,41 @@
                     return;
                 }
 
-                // 3. 🚀【超級優化核心】：免重覆查詢，直接用首單 ID 偏移量或當天時間推算
-                // 為了完美對齊前端網頁算出來的 001、002...
-                // 我們直接去查今天「第一筆訂單的原始 ID 是多少」
+                // 3. 🚀【前端智能序號對齊系統】：
+                // 不向資料庫二次撈單，直接根據現有的訂單日期來對齊序號
                 const now = new Date();
                 const twTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-                const todayStr = twTime.toISOString().split('T')[0];
+                const todayStr = twTime.toISOString().split('T')[0]; // 取得今天台灣日期，例如 "2026-03-30"
 
-                // 只向資料庫問一次：今天最早的那張單 ID 是幾號
-                const firstOrderRes = await fetch(`${API_URL}?created_at=gte.${todayStr}T00:00:00Z&order=id.asc&limit=1&select=id`, {
-                    method: 'GET',
-                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-                });
+                // 找出列表中，屬於今天建立的所有訂單的原始 ID 集合
+                const todayOrderIds = pendingOrders
+                    .filter(order => {
+                        const orderTime = new Date(order.created_at);
+                        const orderTwTime = new Date(orderTime.getTime() + (8 * 60 * 60 * 1000));
+                        const orderDateStr = orderTwTime.toISOString().split('T')[0];
+                        return orderDateStr === todayStr;
+                    })
+                    .map(order => order.id);
 
-                let baseId = 0;
-                if (firstOrderRes.ok) {
-                    const firstOrderData = await firstOrderRes.json();
-                    if (firstOrderData.length > 0) {
-                        baseId = firstOrderData[0].id; // 抓到今天第一單的絕對流水號 (例如 15)
-                    }
-                }
+                // 今日首單 ID 基準點
+                const minTodayId = todayOrderIds.length > 0 ? Math.min(...todayOrderIds) : null;
 
                 // 4. 計算出每筆 pending 訂單在今天的動態序號
-                const finalRenderedOrders = pendingOrders.map(order => {
+                const finalRenderedOrders = pendingOrders.map((order, idx) => {
                     let dailyNum = 1;
-                    if (baseId > 0 && order.id >= baseId) {
-                        // 今天的單號 = 目前訂單 ID - 今天第一單 ID + 1
-                        dailyNum = (order.id - baseId) + 1;
+                    
+                    const orderTime = new Date(order.created_at);
+                    const orderTwTime = new Date(orderTime.getTime() + (8 * 60 * 60 * 1000));
+                    const orderDateStr = orderTwTime.toISOString().split('T')[0];
+
+                    if (orderDateStr === todayStr && minTodayId !== null) {
+                        // 今天的單：目前訂單 ID 減去今天最早那單的 ID，再加上 1
+                        dailyNum = (order.id - minTodayId) + 1;
                     } else {
-                        // 萬一是昨天殘留至今未核銷的單子，給予獨立提示或維持原始偏移
-                        dailyNum = 1;
+                        // 跨夜殘留或以前的單子：直接依據排序位置提供保險序號
+                        dailyNum = idx + 1;
                     }
+                    
                     const formattedNum = String(dailyNum).padStart(3, '0');
                     return { ...order, dailyNumber: formattedNum };
                 });
@@ -242,7 +247,7 @@
                     });
                 }
 
-                // 填入卡片內容
+                // 填入卡片內容（第一筆 index 為 0 的項目會自動放大）
                 card.innerHTML = `
                     <div class="priority-badge">🚨 優先出餐</div>
                     <div class="order-id">今日編號：#${order.dailyNumber}</div>
