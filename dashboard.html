@@ -42,9 +42,9 @@
             position: relative;
         }
 
-        /* ✨【核心優化 1】：最上面第一筆（優先）的特大號字體樣式 */
+        /* ✨【優先出餐優化】：最上面第一筆（優先）的特大號字體樣式 */
         .order-list .order-card:first-child {
-            border: 5px solid #dc2626; /* 優先訂單用紅色粗邊框提醒 */
+            border: 5px solid #dc2626; 
             background-color: #fffef0;
         }
         .order-list .order-card:first-child .priority-badge {
@@ -54,18 +54,18 @@
             padding: 5px 15px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 24px; /* 比平常大很多 */
+            font-size: 24px; 
             margin-bottom: 10px;
             animation: blink 1.5s infinite;
         }
         .order-list .order-card:first-child .order-id {
-            font-size: 36px; /* 單號放大 1.5 倍以上 */
+            font-size: 36px; 
             color: #dc2626;
             font-weight: 900;
         }
         .order-list .order-card:first-child .order-time,
         .order-list .order-card:first-child .item-line {
-            font-size: 22px; /* 明細與時間同步放大 */
+            font-size: 22px; 
             line-height: 1.6;
         }
 
@@ -93,15 +93,15 @@
             border-left: 3px solid #4a2f1c;
         }
 
-        /* ✨【核心優化 2】：極大化完成出餐按鈕，方便廚師操作 */
+        /* ✨【完成出餐按鈕加大】，方便廚師操作 */
         .complete-btn {
             display: block;
             width: 100%;
-            padding: 20px 10px; /* 大幅增加上下點擊寬度 */
+            padding: 20px 10px; 
             background-color: #16a34a;
             color: #ffffff;
             border: none;
-            font-size: 24px; /* 字體放大，清晰好按 */
+            font-size: 24px; 
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
@@ -115,7 +115,6 @@
             transform: translateY(3px);
         }
 
-        /* 第一筆訂單的按鈕可以更大更醒目 */
         .order-list .order-card:first-child .complete-btn {
             background-color: #dc2626;
             box-shadow: 0 4px 0 #991b1b;
@@ -153,7 +152,7 @@
             try {
                 document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
                 
-                // 撈取所有未處理的訂單（依照時間先後排序，舊的在上面優先出餐）
+                // 1. 一次性撈取當天及之前所有待處理的訂單（依照建立時間 asc 排序，最舊、最先點的在最上面）
                 const response = await fetch(`${API_URL}?status=eq.pending&order=created_at.asc`, {
                     method: 'GET',
                     headers: {
@@ -163,40 +162,51 @@
                 });
 
                 if (!response.ok) throw new Error("資料庫連線失敗");
-                const orders = await response.json();
+                const pendingOrders = await response.json();
                 
-                // ✨【核心除錯】：動態計算每一筆訂單「當天的獨立單號」，讓前後端完全同步！
-                // 為了精準算出單號，我們需要知道每張訂單在其建立當天是第幾筆
-                const renderedOrders = [];
-                
-                for(let i = 0; i < orders.length; i++) {
-                    const order = orders[i];
-                    
-                    // 取得該筆訂單的台灣當天日期字串
-                    const createdAt = new Date(order.created_at);
-                    const twTime = new Date(createdAt.getTime() + (8 * 60 * 60 * 1000));
-                    const orderDateStr = twTime.toISOString().split('T')[0];
-                    
-                    // 去資料庫撈取這筆訂單「之前」，當天總共有多少筆訂單
-                    // 這樣就算前面有些單子已經被點選「完成出餐(status變更)」而消失，算出來的單號依然會是永久固定且正確的！
-                    const dayCountUrl = `${API_URL}?created_at=gte.${orderDateStr}T00:00:00Z&created_at=lt.${order.created_at}&select=id`;
-                    const countRes = await fetch(dayCountUrl, {
-                        method: 'GET',
-                        headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-                    });
-                    
-                    let dayIndex = 0;
-                    if (countRes.ok) {
-                        const historyOrders = await countRes.json();
-                        dayIndex = historyOrders.length; 
-                    }
-                    
-                    // 今日單號 = 在這筆訂單之前建立的單數 + 1
-                    const formattedNum = String(dayIndex + 1).padStart(3, '0');
-                    renderedOrders.push({ ...order, dailyNumber: formattedNum });
+                // 2. 如果完全沒訂單，直接去渲染空畫面
+                if (pendingOrders.length === 0) {
+                    renderOrderList([]);
+                    document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
+                    return;
                 }
 
-                renderOrderList(renderedOrders);
+                // 3. 🚀【超級優化核心】：免重覆查詢，直接用首單 ID 偏移量或當天時間推算
+                // 為了完美對齊前端網頁算出來的 001、002...
+                // 我們直接去查今天「第一筆訂單的原始 ID 是多少」
+                const now = new Date();
+                const twTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+                const todayStr = twTime.toISOString().split('T')[0];
+
+                // 只向資料庫問一次：今天最早的那張單 ID 是幾號
+                const firstOrderRes = await fetch(`${API_URL}?created_at=gte.${todayStr}T00:00:00Z&order=id.asc&limit=1&select=id`, {
+                    method: 'GET',
+                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
+                });
+
+                let baseId = 0;
+                if (firstOrderRes.ok) {
+                    const firstOrderData = await firstOrderRes.json();
+                    if (firstOrderData.length > 0) {
+                        baseId = firstOrderData[0].id; // 抓到今天第一單的絕對流水號 (例如 15)
+                    }
+                }
+
+                // 4. 計算出每筆 pending 訂單在今天的動態序號
+                const finalRenderedOrders = pendingOrders.map(order => {
+                    let dailyNum = 1;
+                    if (baseId > 0 && order.id >= baseId) {
+                        // 今天的單號 = 目前訂單 ID - 今天第一單 ID + 1
+                        dailyNum = (order.id - baseId) + 1;
+                    } else {
+                        // 萬一是昨天殘留至今未核銷的單子，給予獨立提示或維持原始偏移
+                        dailyNum = 1;
+                    }
+                    const formattedNum = String(dailyNum).padStart(3, '0');
+                    return { ...order, dailyNumber: formattedNum };
+                });
+
+                renderOrderList(finalRenderedOrders);
                 document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
 
             } catch (error) {
@@ -222,7 +232,7 @@
                 // 解析時間
                 const time = new Date(order.created_at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
                 
-                // 生成品項明細清單 DOM
+                // 生成品項明細清單
                 let itemsHtml = '';
                 if (Array.isArray(order.items)) {
                     order.items.forEach(item => {
@@ -232,7 +242,7 @@
                     });
                 }
 
-                // 填入卡片內容 (最上面第一筆 index 為 0，會自動套用 CSS 放大 1.5 倍的規則)
+                // 填入卡片內容
                 card.innerHTML = `
                     <div class="priority-badge">🚨 優先出餐</div>
                     <div class="order-id">今日編號：#${order.dailyNumber}</div>
@@ -245,11 +255,10 @@
             });
         }
 
-        // 🚀 廚師點擊「完成出餐」按鈕：將狀態從 pending 改為 completed
+        // 🚀 廚師點擊「完成出餐」按鈕
         async function completeOrder(orderId, buttonEl) {
             if (!confirm("確定這筆餐點已經製作完成，要核銷出單嗎？")) return;
             
-            // 點擊後立刻把按鈕文字改成處理中，防止重覆狂點
             buttonEl.disabled = true;
             buttonEl.textContent = "⏱ 處理中...";
 
@@ -266,7 +275,6 @@
                 });
 
                 if (response.ok) {
-                    // 成功後立刻重新撈取，保持畫面最新狀態
                     fetchOrders();
                 } else {
                     alert("核銷失敗，請重新再試一次！");
@@ -280,7 +288,7 @@
             }
         }
 
-        // ⏱ 設定每 10 秒鐘自動幫老闆重新抓取一次最新訂單，免手動對帳
+        // ⏱ 設定每 10 秒鐘自動同步一次
         fetchOrders();
         setInterval(fetchOrders, 10000);
     </script>
