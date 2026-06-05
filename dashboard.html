@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -25,290 +26,292 @@
             border-radius: 8px;
         }
         h1 { margin: 0; font-size: 24px; }
-        
-        .order-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        /* 訂單卡片基礎樣式 */
-        .order-card {
-            background-color: #f7f3e9;
-            border: 3px solid #a67c52;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-        }
 
-        /* ✨【優先出餐優化】：最上面第一筆（優先）的特大號字體樣式 */
-        .order-list .order-card:first-child {
-            border: 5px solid #dc2626; 
-            background-color: #fffef0;
-        }
-        .order-list .order-card:first-child .priority-badge {
-            display: inline-block;
-            background-color: #dc2626;
-            color: #ffffff;
-            padding: 5px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 24px; 
-            margin-bottom: 10px;
-            animation: blink 1.5s infinite;
-        }
-        .order-list .order-card:first-child .order-id {
-            font-size: 36px; 
-            color: #dc2626;
-            font-weight: 900;
-        }
-        .order-list .order-card:first-child .order-time,
-        .order-list .order-card:first-child .item-line {
-            font-size: 22px; 
-            line-height: 1.6;
-        }
+```
+    .order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-        /* 平常訂單的常規字體大小 */
-        .priority-badge { display: none; }
-        .order-id {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            border-bottom: 1px dashed #a67c52;
-            padding-bottom: 5px;
-        }
-        .order-time {
-            font-size: 14px;
-            color: #78350f;
-            margin-bottom: 15px;
-        }
-        .order-items {
-            margin-bottom: 20px;
-        }
-        .item-line {
-            font-size: 16px;
-            margin-bottom: 8px;
-            padding-left: 10px;
-            border-left: 3px solid #4a2f1c;
-        }
+    /* 一般訂單卡片 */
+    .order-card {
+        background-color: #f7f3e9;
+        border: 3px solid #a67c52;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: relative;
+    }
 
-        /* ✨【完成出餐按鈕加大】，方便廚師操作 */
-        .complete-btn {
-            display: block;
-            width: 100%;
-            padding: 20px 10px; 
-            background-color: #16a34a;
-            color: #ffffff;
-            border: none;
-            font-size: 24px; 
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #15803d;
-            text-align: center;
-            user-select: none;
-        }
-        .complete-btn:active {
-            background-color: #15803d;
-            box-shadow: 0 1px 0 #15803d;
-            transform: translateY(3px);
-        }
+    /* 第一張（優先）特大樣式 */
+    .order-list .order-card:first-child {
+        border: 5px solid #dc2626;
+        background-color: #fffef0;
+    }
+    .priority-badge { display: none; }
+    .order-list .order-card:first-child .priority-badge {
+        display: inline-block;
+        background-color: #dc2626;
+        color: #ffffff;
+        padding: 5px 15px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 24px;
+        margin-bottom: 10px;
+        animation: blink 1.5s infinite;
+    }
+    .order-list .order-card:first-child .order-id {
+        font-size: 36px;
+        color: #dc2626;
+        font-weight: 900;
+    }
+    .order-list .order-card:first-child .order-time,
+    .order-list .order-card:first-child .item-line {
+        font-size: 22px;
+        line-height: 1.6;
+    }
 
-        .order-list .order-card:first-child .complete-btn {
-            background-color: #dc2626;
-            box-shadow: 0 4px 0 #991b1b;
-        }
-        .order-list .order-card:first-child .complete-btn:active {
-            background-color: #991b1b;
-            box-shadow: 0 1px 0 #991b1b;
-        }
+    .order-id {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        border-bottom: 1px dashed #a67c52;
+        padding-bottom: 5px;
+    }
+    /* ✅ 客戶稱謂顯示在單號旁 */
+    .customer-badge {
+        display: inline-block;
+        background-color: #a67c52;
+        color: #fff;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+    .order-list .order-card:first-child .customer-badge {
+        font-size: 20px;
+        padding: 4px 14px;
+    }
+    .order-time {
+        font-size: 14px;
+        color: #78350f;
+        margin-bottom: 15px;
+    }
+    .order-items { margin-bottom: 20px; }
+    .item-line {
+        font-size: 16px;
+        margin-bottom: 8px;
+        padding-left: 10px;
+        border-left: 3px solid #4a2f1c;
+    }
 
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-    </style>
+    /* 出餐按鈕 */
+    .complete-btn {
+        display: block;
+        width: 100%;
+        padding: 20px 10px;
+        background-color: #16a34a;
+        color: #ffffff;
+        border: none;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #15803d;
+        text-align: center;
+        user-select: none;
+    }
+    .complete-btn:active {
+        background-color: #15803d;
+        box-shadow: 0 1px 0 #15803d;
+        transform: translateY(3px);
+    }
+    .complete-btn.confirming {
+        background-color: #dc2626;
+        box-shadow: 0 4px 0 #991b1b;
+        animation: pulse 0.8s infinite;
+    }
+    .order-list .order-card:first-child .complete-btn {
+        background-color: #dc2626;
+        box-shadow: 0 4px 0 #991b1b;
+    }
+    .order-list .order-card:first-child .complete-btn.confirming {
+        background-color: #7f1d1d;
+        box-shadow: 0 4px 0 #450a0a;
+    }
+
+    @keyframes blink {
+        0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; }
+    }
+    @keyframes pulse {
+        0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; }
+    }
+</style>
+```
+
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
-            <div id="loading-status" style="font-size:14px; color:#666; margin-top:5px;">正在連線資料庫...</div>
-        </header>
+<div class="container">
+    <header>
+        <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
+        <div id="loading-status" style="font-size:14px; color:#666; margin-top:5px;">正在連線資料庫...</div>
+    </header>
+    <div class="order-list" id="order-container"></div>
+</div>
 
-        <div class="order-list" id="order-container">
-            </div>
-    </div>
+<script>
+    const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
+    const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-    <script>
-        const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
-        const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
+    // 各張訂單的確認狀態
+    const confirmStates = {};
 
-        // 🔄 核心載入系統
-        async function fetchOrders() {
-            try {
-                document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
-                
-                // 1. 安全獲取所有待處理訂單
-                const response = await fetch(`${API_URL}?status=eq.pending&order=created_at.asc`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+    // 🔄 載入待出餐訂單
+    async function fetchOrders() {
+        try {
+            document.getElementById('loading-status').textContent = '正在即時更新訂單中...';
 
-                if (!response.ok) throw new Error("資料庫拒絕回應");
-                const pendingOrders = await response.json();
-                
-                if (pendingOrders.length === 0) {
-                    renderOrderList([]);
-                    document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
-                    return;
+            const response = await fetch(`${API_URL}?status=eq.pending&order=created_at.asc`, {
+                headers: {
+                    'apikey': API_KEY,
+                    'Authorization': `Bearer ${API_KEY}`
                 }
-
-                // 2. 🚀【安全無冒號單號計算】：改用單純的 ID 範圍計數，完全避開網址冒號與歷史完成單消失的問題
-                const finalRenderedOrders = [];
-                
-                for (let order of pendingOrders) {
-                    // 轉為台灣當天日期字串（格式為 YYYY-MM-DD，絕無冒號）
-                    const orderTime = new Date(order.created_at);
-                    const twTime = new Date(orderTime.getTime() + (8 * 60 * 60 * 1000));
-                    const todayStr = twTime.toISOString().split('T')[0];
-
-                    // 向資料庫查詢：這張單在「當天」且「ID小於等於它自己」的總單數
-                    // 這裡改用純數字範圍判斷，既不會混淆，又能把已完成的歷史單一併算進去，單號絕對能對齊前端！
-                    const countUrl = `${API_URL}?id=lte.${order.id}&select=id`;
-                    const countRes = await fetch(countUrl, {
-                        method: 'GET',
-                        headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-                    });
-
-                    let dailyNum = 1;
-                    if (countRes.ok) {
-                        const allBeforeOrders = await countRes.json();
-                        // 過濾出與這張單同一天建立的所有歷史單總數
-                        const dayCount = allBeforeOrders.filter(o => {
-                            // 這邊做純內存運算，效率極高且安全
-                            return true; 
-                        }).length;
-                        
-                        // 基準點對位：由於資料庫是連續流水號，只要算出它在目前系統中當天所有單（含已完成）的相對位置即可
-                        // 為確保絕對安全，如果資料異常，我們依舊提供保險單號
-                        dailyNum = dayCount > 0 ? dayCount : 1;
-                    }
-
-                    // 重新做一次精準的當天單號修正（防止跨日單混淆）
-                    // 最簡化保險方案：直接將結果填入
-                    const formattedNum = String(order.id % 1000).padStart(3, '0'); // 如果資料庫流水號是連貫的，直接取末三位是最不易斷線且跟前端每日重設相同的方案。
-                    // 為了確保與前端「每日重新計算」100% 相同，使用當天序號：
-                    
-                    // 💡最安全且絕對不斷線、百分之百與前端獨立單號相同的終極算法：
-                    // 直接計算這筆 order 的 id 與今天第一筆 pending id 的差值（在沒有大量跨日未出單的情況下，這最安全）
-                    finalRenderedOrders.push({ ...order, dailyNumber: formattedNum });
-                }
-
-                // 為了讓主廚100%對齊前端，如果前端是用 order.id 減去當日首單 ID，我們這裡做最終補正：
-                const processedOrders = pendingOrders.map((order, index) => {
-                    // 取得這筆訂單的日期
-                    const d = new Date(order.created_at);
-                    d.setHours(d.getHours() + 8);
-                    const dStr = d.toISOString().split('T')[0];
-                    
-                    // 找出所有在它之前（含自己）同日期的 pending 數量補正
-                    // 直接使用最穩定的順序計數法，避免連線被斷：
-                    let num = order.id % 100 === 0 ? 100 : order.id % 100;
-                    const formattedNum = String(num).padStart(3, '0');
-                    
-                    return { ...order, dailyNumber: formattedNum };
-                });
-
-                renderOrderList(processedOrders);
-                document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading-status').textContent = "⚠️ 連線中或暫無訂單，將於 10 秒後自動重新讀取...";
-            }
-        }
-
-        // 🎨 渲染出單畫面
-        function renderOrderList(orders) {
-            const container = document.getElementById('order-container');
-            container.innerHTML = '';
-
-            if (orders.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; font-size:18px; color:#888; background:#fff; border-radius:8px; border:2px dashed #a67c52;">🎉 報告主廚！目前沒有未出餐的訂單，可以稍作休息！</div>';
-                return;
-            }
-
-            orders.forEach((order) => {
-                const card = document.createElement('div');
-                card.className = 'order-card';
-
-                const time = new Date(order.created_at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-                
-                let itemsHtml = '';
-                if (Array.isArray(order.items)) {
-                    order.items.forEach(item => {
-                        let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
-                        let noteStr = item.note ? ` <span style="color:#b45309; font-weight:bold;">(備註: ${item.note})</span>` : '';
-                        itemsHtml += `<div class="item-line">🔹 ${item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'} ${item.size} x 1區 - $${item.price}${customStr}${noteStr}</div>`;
-                    });
-                }
-
-                card.innerHTML = `
-                    <div class="priority-badge">🚨 優先出餐</div>
-                    <div class="order-id">單號：#${order.dailyNumber}</div>
-                    <div class="order-time">收單時間：${time} ｜ 總金額：$${order.total_price}</div>
-                    <div class="order-items">${itemsHtml}</div>
-                    <button class="complete-btn" onclick="completeOrder('${order.id}', this)">✔ 完成出餐</button>
-                `;
-
-                container.appendChild(card);
             });
+
+            if (!response.ok) throw new Error('資料庫拒絕回應');
+
+            const orders = await response.json();
+            renderOrderList(orders);
+
+            const timeStr = new Date().toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei' });
+            document.getElementById('loading-status').textContent = `最後更新：${timeStr}（每 10 秒自動同步）`;
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading-status').textContent = '⚠️ 連線異常，將於 10 秒後自動重試...';
+        }
+    }
+
+    // 🎨 渲染出單畫面
+    function renderOrderList(orders) {
+        const container = document.getElementById('order-container');
+        container.innerHTML = '';
+
+        if (orders.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; font-size:18px; color:#888; background:#fff; border-radius:8px; border:2px dashed #a67c52;">🎉 報告主廚！目前沒有未出餐的訂單，可以稍作休息！</div>';
+            return;
         }
 
-        // 🚀 廚師點擊「完成出餐」按鈕
-        async function completeOrder(orderId, buttonEl) {
-            if (!confirm("確定這筆餐點已經製作完成，要核銷出單嗎？")) return;
-            
-            buttonEl.disabled = true;
-            buttonEl.textContent = "⏱ 處理中...";
+        orders.forEach(order => {
+            const card = document.createElement('div');
+            card.className = 'order-card';
 
-            try {
-                const response = await fetch(`${API_URL}?id=eq.${orderId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify({ status: 'completed' })
+            // ✅ 時區修正：created_at 是 UTC，轉換成台灣時間顯示
+            const twTime = new Date(new Date(order.created_at).getTime() + 8 * 60 * 60 * 1000);
+            const timeStr = twTime.toISOString().substring(11, 16); // HH:MM
+
+            // ✅ daily_number 直接從資料庫讀取，不需要任何計算
+            const dailyNum = String(order.daily_number).padStart(3, '0');
+
+            // ✅ 客戶資訊從獨立欄位讀取
+            const customerBadge = order.customer_name
+                ? `<span class="customer-badge">👤 ${order.customer_name}（末三碼：${order.customer_phone}）</span>`
+                : '';
+
+            let itemsHtml = '';
+            if (Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    const itemName = item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治';
+                    const customStr = item.customization && item.customization.length > 0
+                        ? ` [${item.customization.join(', ')}]` : '';
+                    const noteStr = item.note
+                        ? ` <span style="color:#b45309; font-weight:bold;">（備註: ${item.note}）</span>` : '';
+                    itemsHtml += `<div class="item-line">🔹 ${itemName} ${item.size} - $${item.price}${customStr}${noteStr}</div>`;
                 });
-
-                if (response.ok) {
-                    fetchOrders();
-                } else {
-                    alert("核銷失敗，請重新再試一次！");
-                    buttonEl.disabled = false;
-                    buttonEl.textContent = "✔ 完成出餐";
-                }
-            } catch (error) {
-                alert("網路異常，無法變更出餐狀態！");
-                buttonEl.disabled = false;
-                buttonEl.textContent = "✔ 完成出餐";
             }
-        }
 
-        // ⏱ 啟動系統
-        fetchOrders();
-        setInterval(fetchOrders, 10000);
-    </script>
+            card.innerHTML = `
+                <div class="priority-badge">🚨 優先出餐</div>
+                <div class="order-id">單號：#${dailyNum}${customerBadge}</div>
+                <div class="order-time">收單時間：${timeStr} ｜ 總金額：$${order.total_price}</div>
+                <div class="order-items">${itemsHtml}</div>
+                <button class="complete-btn" id="btn-${order.id}" onclick="handleCompleteBtn('${order.id}')">
+                    ✔ 完成出餐
+                </button>
+            `;
+
+            container.appendChild(card);
+        });
+    }
+
+    // 🚀 行內二次確認出餐（取代 confirm()）
+    function handleCompleteBtn(orderId) {
+        const btn = document.getElementById(`btn-${orderId}`);
+
+        if (!confirmStates[orderId]) {
+            // 第一次按：提示再按一次
+            confirmStates[orderId] = true;
+            btn.textContent = '⚠️ 再按一次確認完成出餐';
+            btn.classList.add('confirming');
+
+            // 5 秒後自動還原
+            setTimeout(() => {
+                if (confirmStates[orderId]) {
+                    confirmStates[orderId] = false;
+                    if (btn) {
+                        btn.textContent = '✔ 完成出餐';
+                        btn.classList.remove('confirming');
+                    }
+                }
+            }, 5000);
+
+        } else {
+            // 第二次按：正式核銷
+            confirmStates[orderId] = false;
+            completeOrder(orderId, btn);
+        }
+    }
+
+    // 📡 送出核銷請求
+    async function completeOrder(orderId, btn) {
+        btn.disabled = true;
+        btn.textContent = '⏱ 處理中...';
+        btn.classList.remove('confirming');
+
+        try {
+            const response = await fetch(`${API_URL}?id=eq.${orderId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': API_KEY,
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify({ status: 'completed' })
+            });
+
+            if (response.ok) {
+                fetchOrders();
+            } else {
+                alert('核銷失敗，請重新再試一次！');
+                btn.disabled = false;
+                btn.textContent = '✔ 完成出餐';
+            }
+        } catch (error) {
+            alert('網路異常，無法變更出餐狀態！');
+            btn.disabled = false;
+            btn.textContent = '✔ 完成出餐';
+        }
+    }
+
+    // ⏱ 啟動系統
+    fetchOrders();
+    setInterval(fetchOrders, 10000);
+</script>
+
 </body>
 </html>
