@@ -1,31 +1,27 @@
 <!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>阿德師傅 - 義式脆皮烤豬餐車</title>
-    
-    <link rel="manifest" href="manifest.json">
-    
     <style>
-        /* 核心手機直式優化 */
         body {
             margin: 0;
-            font-family: "Segoe Script", "Apple Chancery", cursive, "Noto Sans TC", sans-serif;
-            background-color: #f0e6d2; 
+            font-family: "Noto Sans TC", "Segoe UI", sans-serif;
+            background-color: #f0e6d2;
             color: #4a2f1c;
-            overflow-x: hidden; 
+            overflow-x: hidden;
         }
         .menu-container {
-            max-width: 480px; 
+            max-width: 480px;
             margin: 0 auto;
-            background-color: #f7f3e9; 
-            border: 15px solid #a67c52; 
+            background-color: #f7f3e9;
+            border: 15px solid #a67c52;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            padding-bottom: 140px; 
+            padding-bottom: 140px;
             position: relative;
         }
-
         header {
             text-align: center;
             padding: 20px;
@@ -33,540 +29,552 @@
         }
         header h1 { font-size: 24px; margin: 10px 0 0; }
 
-        /* 商品項目 */
-        .menu-item {
-            padding: 20px;
-            border-bottom: 2px solid #a67c52;
-        }
-        .item-header { display: flex; align-items: center; margin-bottom: 15px; }
-        .item-header h2 { font-size: 20px; margin: 0; }
+```
+    .menu-item {
+        padding: 20px;
+        border-bottom: 2px solid #a67c52;
+    }
+    .item-header { display: flex; align-items: center; margin-bottom: 15px; }
+    .item-header h2 { font-size: 20px; margin: 0; }
 
-        /* 客製化按鈕 */
-        .custom-options, .size-select { margin: 15px 0; }
-        .custom-options label, .size-select label {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #e6dfc7;
-            border: 1px solid #a67c52;
-            margin-right: 5px;
-            cursor: pointer;
-            border-radius: 4px;
-            user-select: none;
-        }
-        .custom-options input:checked + label, .size-select input:checked + label {
-            background-color: #a67c52;
-            color: #ffffff;
-            border-color: #4a2f1c;
-        }
-        .custom-options input, .size-select input { display: none; }
-        .item-description { font-size: 16px; line-height: 1.4; margin-bottom: 15px; }
+    .custom-options, .size-select { margin: 15px 0; }
+    .custom-options label, .size-select label {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #e6dfc7;
+        border: 1px solid #a67c52;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        border-radius: 4px;
+        user-select: none;
+    }
+    .custom-options input:checked + label, .size-select input:checked + label {
+        background-color: #a67c52;
+        color: #ffffff;
+        border-color: #4a2f1c;
+    }
+    .custom-options input, .size-select input { display: none; }
+    .item-description { font-size: 16px; line-height: 1.4; margin-bottom: 15px; }
 
-        .add-cart-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background-color: #4a2f1c;
-            color: #ffffff;
-            border: none;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+    .add-cart-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background-color: #4a2f1c;
+        color: #ffffff;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+    .add-cart-btn:active { opacity: 0.8; }
 
-        /* 🛒 固定購物車底欄 (增加點擊指引樣式) */
-        .fixed-cart {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #4a2f1c;
-            color: #ffffff;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
-            box-sizing: border-box;
-            z-index: 1001;
-            cursor: pointer; 
-        }
-        .cart-details {
-            display: flex;
-            flex-direction: column; 
-        }
-        .cart-details .click-tip {
-            font-size: 12px;
-            color: #e6dfc7;
-            font-weight: normal;
-            margin-top: 2px;
-        }
+    /* 固定購物車底欄 */
+    .fixed-cart {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #4a2f1c;
+        color: #ffffff;
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 20px;
+        font-weight: bold;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+        box-sizing: border-box;
+        z-index: 1001;
+        cursor: pointer;
+    }
+    .cart-details { display: flex; flex-direction: column; }
+    .cart-details .click-tip {
+        font-size: 12px;
+        color: #e6dfc7;
+        font-weight: normal;
+        margin-top: 2px;
+    }
+    .confirm-order-btn {
+        background-color: #ffffff;
+        color: #4a2f1c;
+        padding: 12px 18px;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
 
-        .confirm-order-btn {
-            background-color: #ffffff;
-            color: #4a2f1c;
-            padding: 12px 18px;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+    /* 購物車彈出層 */
+    .cart-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+    }
+    .cart-popup {
+        position: fixed;
+        bottom: -100%;
+        left: 0;
+        width: 100%;
+        max-height: 75%;
+        background-color: #f7f3e9;
+        border-top: 5px solid #a67c52;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+        z-index: 1000;
+        box-sizing: border-box;
+        transition: bottom 0.3s ease-out;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    .cart-popup.open { bottom: 74px; }
+    .popup-title {
+        font-size: 18px;
+        border-bottom: 2px solid #a67c52;
+        padding-bottom: 8px;
+        margin-top: 0;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        /* 彈出式購物車清單滿版遮罩背景 */
-        .cart-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none; 
-        }
+    /* 客戶資料區 */
+    .customer-info-block {
+        background-color: #e6dfc7;
+        border: 2px dashed #a67c52;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    .customer-info-title {
+        font-weight: bold;
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-label { font-size: 14px; font-weight: bold; min-width: 85px; }
+    .customer-input-text {
+        border: 1px solid #a67c52;
+        border-radius: 4px;
+        padding: 6px;
+        font-size: 14px;
+        width: 100px;
+        color: #4a2f1c;
+        background-color: #fff;
+    }
+    .gender-options { display: flex; gap: 5px; }
+    .gender-options label {
+        padding: 4px 10px;
+        background-color: #faf8f5;
+        border: 1px solid #a67c52;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .gender-options input:checked + label {
+        background-color: #a67c52;
+        color: white;
+    }
+    .gender-options input { display: none; }
 
-        /* 彈出式明細視窗內容 */
-        .cart-popup {
-            position: fixed;
-            bottom: -100%; 
-            left: 0;
-            width: 100%;
-            max-height: 75%; 
-            background-color: #f7f3e9;
-            border-top: 5px solid #a67c52;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
-            z-index: 1000;
-            box-sizing: border-box;
-            transition: bottom 0.3s ease-out; 
-            overflow-y: auto;
-            padding: 20px;
-        }
-        .cart-popup.open {
-            bottom: 74px; 
-        }
-        .popup-title {
-            font-size: 18px;
-            border-bottom: 2px solid #a67c52;
-            padding-bottom: 8px;
-            margin-top: 0;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* 購物車品項卡片 */
+    .cart-list-item {
+        background: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 12px;
+        position: relative;
+    }
+    .cart-list-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        font-size: 16px;
+        padding-right: 30px;
+    }
+    .cart-list-item-tags {
+        font-size: 13px;
+        color: #b45309;
+        margin: 4px 0;
+    }
+    .cart-item-note-input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #a67c52;
+        background-color: #faf8f5;
+        padding: 6px;
+        font-size: 14px;
+        border-radius: 4px;
+        margin-top: 6px;
+        color: #4a2f1c;
+    }
+    .delete-item-btn {
+        position: absolute;
+        top: 10px; right: 10px;
+        background: none;
+        border: none;
+        color: #dc2626;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0 5px;
+    }
 
-        /* 客戶基本資料區域樣式 */
-        .customer-info-block {
-            background-color: #e6dfc7;
-            border: 2px dashed #a67c52;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 15px;
-        }
-        .customer-info-title {
-            font-weight: bold;
-            font-size: 15px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-        .info-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-        .info-row:last-child { margin-bottom: 0; }
-        .info-label { font-size: 14px; font-weight: bold; min-width: 85px; }
-        .customer-input-text {
-            border: 1px solid #a67c52;
-            border-radius: 4px;
-            padding: 6px;
-            font-size: 14px;
-            width: 100px;
-            color: #4a2f1c;
-        }
-        /* 稱謂單選樣式 */
-        .gender-options { display: flex; gap: 5px; }
-        .gender-options label {
-            padding: 4px 10px;
-            background-color: #faf8f5;
-            border: 1px solid #a67c52;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .gender-options input:checked + label {
-            background-color: #a67c52;
-            color: white;
-        }
-        .gender-options input { display: none; }
+    /* 二次確認按鈕 */
+    .confirm-order-btn.confirming {
+        background-color: #dc2626;
+        color: #ffffff;
+        animation: pulse 0.8s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+</style>
+```
 
-        /* 購物車內單一項目卡片 */
-        .cart-list-item {
-            background: #ffffff;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 12px;
-            position: relative;
-        }
-        .cart-list-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 16px;
-            padding-right: 30px; 
-        }
-        .cart-list-item-tags {
-            font-size: 13px;
-            color: #b45309;
-            margin: 4px 0;
-        }
-        /* 備註輸入框優化 */
-        .cart-item-note-input {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #a67c52;
-            background-color: #faf8f5;
-            padding: 6px;
-            font-size: 14px;
-            border-radius: 4px;
-            margin-top: 6px;
-            color: #4a2f1c;
-        }
-        /* ❌ 獨立單筆刪除按鈕 */
-        .delete-item-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #dc2626;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 0 5px;
-        }
-    </style>
 </head>
 <body>
 
-    <div class="menu-container">
-        <header>
-            <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
-        </header>
+<div class="menu-container">
+    <header>
+        <h1>阿德師傅 - 義式脆皮烤豬餐車</h1>
+    </header>
 
-        <section class="menu-item">
-            <div class="item-header">
-                <h2>義式脆皮烤豬 / Italian Porchetta</h2>
-            </div>
-            <p class="item-description">傳承義大利百年傳統，外皮嘎嘣脆、肉質鮮嫩多汁！</p>
-            <div class="size-select">
-                <input type="radio" id="porchetta-large" name="porchetta-size" value="300" checked>
-                <label for="porchetta-large">(大) $300</label>
-                <input type="radio" id="porchetta-small" name="porchetta-size" value="200">
-                <label for="porchetta-small">(小) $200</label>
-            </div>
-            <div class="custom-options">
-                <input type="checkbox" id="porchetta-辣" name="porchetta-辣" value="大辣">
-                <label for="porchetta-辣">[ 大辣 ]</label>
-                <input type="checkbox" id="porchetta-洋蔥" name="porchetta-洋蔥" value="不要洋蔥">
-                <label for="porchetta-洋蔥">[ 不要洋蔥 ]</label>
-            </div>
-            <button class="add-cart-btn" onclick="chefAddToCart('Porchetta', this)">➕ 加入購物車</button>
-        </section>
+```
+<!-- 義式脆皮烤豬 -->
+<section class="menu-item">
+    <div class="item-header">
+        <h2>義式脆皮烤豬 / Italian Porchetta</h2>
+    </div>
+    <p class="item-description">傳承義大利百年傳統，外皮嘎嘣脆、肉質鮮嫩多汁！</p>
+    <div class="size-select">
+        <input type="radio" id="porchetta-large" name="porchetta-size" value="300" checked>
+        <label for="porchetta-large">(大) $300</label>
+        <input type="radio" id="porchetta-small" name="porchetta-size" value="200">
+        <label for="porchetta-small">(小) $200</label>
+    </div>
+    <div class="custom-options">
+        <input type="checkbox" id="porchetta-辣" value="大辣">
+        <label for="porchetta-辣">[ 大辣 ]</label>
+        <input type="checkbox" id="porchetta-洋蔥" value="不要洋蔥">
+        <label for="porchetta-洋蔥">[ 不要洋蔥 ]</label>
+    </div>
+    <button class="add-cart-btn" onclick="addToCart('Porchetta', this)">➕ 加入購物車</button>
+</section>
 
-        <section class="menu-item">
-            <div class="item-header">
-                <h2>La Dante 但丁三明治</h2>
-            </div>
-            <p class="item-description">Porchetta烤豬 / 芝麻葉 / 佛卡夏麵包。特製雙風味醬汁組合。</p>
-            <p class="item-description" style="font-weight: bold; font-size: 18px;">單一售價: $170</p>
-            <div class="custom-options">
-                <input type="checkbox" id="sandwich-辣" name="sandwich-辣" value="大辣">
-                <label for="sandwich-辣">[ 大辣 ]</label>
-                <input type="checkbox" id="sandwich-醬汁" name="sandwich-醬汁" value="醬汁分開">
-                <label for="sandwich-醬汁">[ 醬汁分開 ]</label>
-            </div>
-            <button class="add-cart-btn" onclick="chefAddToCart('La Dante Sandwich', this)">➕ 加入購物車</button>
-        </section>
+<!-- 但丁三明治 -->
+<section class="menu-item">
+    <div class="item-header">
+        <h2>La Dante 但丁三明治</h2>
+    </div>
+    <p class="item-description">Porchetta烤豬 / 芝麻葉 / 佛卡夏麵包。特製雙風味醬汁組合。</p>
+    <p class="item-description" style="font-weight: bold; font-size: 18px;">單一售價: $170</p>
+    <div class="custom-options">
+        <input type="checkbox" id="sandwich-辣" value="大辣">
+        <label for="sandwich-辣">[ 大辣 ]</label>
+        <input type="checkbox" id="sandwich-醬汁" value="醬汁分開">
+        <label for="sandwich-醬汁">[ 醬汁分開 ]</label>
+    </div>
+    <button class="add-cart-btn" onclick="addToCart('La Dante Sandwich', this)">➕ 加入購物車</button>
+</section>
+```
+
+</div>
+
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCartPopup()"></div>
+<div class="cart-popup" id="cartPopup">
+    <div class="popup-title">
+        <span>🛒 已點明細清單</span>
+        <span style="font-size:14px; color:#666; cursor:pointer;" onclick="toggleCartPopup()">收合 🔽</span>
     </div>
 
-    <div class="cart-overlay" id="cartOverlay" onclick="toggleCartPopup()"></div>
-    <div class="cart-popup" id="cartPopup">
-        <div class="popup-title">
-            <span>🛒 已點明細清單</span>
-            <span style="font-size: 14px; color: #666;" onclick="toggleCartPopup()">收合 🔽</span>
+```
+<!-- 客戶資料（必填） -->
+<div class="customer-info-block">
+    <div class="customer-info-title">📋 填寫取餐核對資料（必填）</div>
+    <div class="info-row">
+        <div class="info-label">客戶姓氏：</div>
+        <input type="text" id="cust-name" class="customer-input-text" placeholder="例如：陳" maxlength="5">
+        <div class="gender-options">
+            <input type="radio" id="gender-mr" name="cust-gender" value="先生" checked>
+            <label for="gender-mr">先生</label>
+            <input type="radio" id="gender-ms" name="cust-gender" value="小姐">
+            <label for="gender-ms">小姐</label>
         </div>
-
-        <div class="customer-info-block">
-            <div class="customer-info-title">📋 填寫取餐核對資料（必填）</div>
-            <div class="info-row">
-                <div class="info-label">客戶姓氏：</div>
-                <input type="text" id="cust-name" class="customer-input-text" placeholder="例如：陳" maxlength="5">
-                <div class="gender-options">
-                    <input type="radio" id="gender-mr" name="cust-gender" value="先生" checked>
-                    <label for="gender-mr">先生</label>
-                    <input type="radio" id="gender-ms" name="cust-gender" value="小姐">
-                    <label for="gender-ms">小姐</label>
-                </div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">手機末三碼：</div>
-                <input type="tel" id="cust-phone" class="customer-input-text" placeholder="123" pattern="[0-9]{3}" maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                <span style="font-size: 12px; color: #666;">（限3位數字）</span>
-            </div>
-        </div>
-
-        <div id="popup-items-container"></div>
     </div>
+    <div class="info-row">
+        <div class="info-label">手機末三碼：</div>
+        <input type="tel" id="cust-phone" class="customer-input-text" placeholder="123"
+               pattern="[0-9]{3}" maxlength="3"
+               oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <span style="font-size:12px; color:#666;">（限3位數字）</span>
+    </div>
+</div>
 
-    <footer class="fixed-cart">
-        <div class="cart-details" onclick="toggleCartPopup()">
-            <span id="item-count">🛒 已點項目: 0 項</span>
-            <span id="total-price" style="font-size: 18px;">總金額: $0</span>
-            <span class="click-tip">點擊此處可查看明細與填寫備註 📋</span>
-        </div>
-        <button class="confirm-order-btn" onclick="confirmOrder(event)">🚀 確認點餐</button>
-    </footer>
+<div id="popup-items-container"></div>
+```
 
-    <script>
-        // 清除舊 PWA 緩存
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for (let registration of registrations) { registration.unregister(); }
-            });
-        }
+</div>
 
-        const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
-        const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
+<footer class="fixed-cart">
+    <div class="cart-details" onclick="toggleCartPopup()">
+        <span id="item-count">🛒 已點項目: 0 項</span>
+        <span id="total-price" style="font-size:18px;">總金額: $0</span>
+        <span class="click-tip">點擊此處可查看明細與填寫備註 📋</span>
+    </div>
+    <button class="confirm-order-btn" id="confirmBtn" onclick="confirmOrder(event)">🚀 確認點餐</button>
+</footer>
 
-        let cart = { items: [], total: 0 };
+<script>
+    const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
+    const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-        // 🛒 加入購物車功能
-        function chefAddToCart(item, btn) {
-            try {
-                let price = 0;
-                let size = "";
-                let customization = [];
-                
-                if (item === 'Porchetta') {
-                    const largeRadio = document.getElementById('porchetta-large');
-                    price = (largeRadio && largeRadio.checked) ? 300 : 200;
-                    size = (largeRadio && largeRadio.checked) ? "(大份)" : "(小份)";
-                    
-                    if (document.getElementById('porchetta-辣').checked) customization.push('大辣');
-                    if (document.getElementById('porchetta-洋蔥').checked) customization.push('不要洋蔥');
-                    
-                } else if (item === 'La Dante Sandwich') {
-                    price = 170;
-                    size = "(常規)";
-                    if (document.getElementById('sandwich-辣').checked) customization.push('大辣');
-                    if (document.getElementById('sandwich-醬汁').checked) customization.push('醬汁分開');
-                }
+    let cart = { items: [], total: 0 };
+    let confirmStep = 0; // 0=初始, 1=等待二次確認
+    let confirmTimer = null;
 
-                let uniqueId = Date.now() + Math.random().toString(36).substr(2, 5);
+    // ➕ 加入購物車
+    function addToCart(item, btn) {
+        try {
+            let price = 0, size = '', customization = [];
 
-                let cartItem = { 
-                    id: uniqueId, 
-                    item: item, 
-                    size: size, 
-                    price: price, 
-                    customization: customization,
-                    note: "" 
-                };
-                
-                cart.items.push(cartItem);
-                calculateTotal();
+            if (item === 'Porchetta') {
+                const isLarge = document.getElementById('porchetta-large').checked;
+                price = isLarge ? 300 : 200;
+                size = isLarge ? '(大份)' : '(小份)';
+                if (document.getElementById('porchetta-辣').checked) customization.push('大辣');
+                if (document.getElementById('porchetta-洋蔥').checked) customization.push('不要洋蔥');
 
-                if (btn) {
-                    btn.textContent = "已加入！";
-                    setTimeout(() => { btn.textContent = "➕ 加入購物車"; }, 1000);
-                }
+                // ✅ 加入後重置選項
+                document.getElementById('porchetta-large').checked = true;
+                document.getElementById('porchetta-辣').checked = false;
+                document.getElementById('porchetta-洋蔥').checked = false;
 
-            } catch (error) {
-                alert("加入購物車出錯: " + error.message);
-            }
-        }
+            } else if (item === 'La Dante Sandwich') {
+                price = 170;
+                size = '(常規)';
+                if (document.getElementById('sandwich-辣').checked) customization.push('大辣');
+                if (document.getElementById('sandwich-醬汁').checked) customization.push('醬汁分開');
 
-        // 🧮 重新計算總金額並重繪畫面
-        function calculateTotal() {
-            cart.total = cart.items.reduce((sum, current) => sum + current.price, 0);
-            document.getElementById('item-count').textContent = `🛒 已點項目: ${cart.items.length} 項`;
-            document.getElementById('total-price').textContent = `總金額: $${cart.total}`;
-            renderPopupItems();
-        }
-
-        // 🔄 切換購物車明細彈出視窗的開關
-        function toggleCartPopup() {
-            const popup = document.getElementById('cartPopup');
-            const overlay = document.getElementById('cartOverlay');
-            if (popup.classList.contains('open')) {
-                popup.classList.remove('open');
-                overlay.style.display = 'none';
-            } else {
-                if(cart.items.length === 0) {
-                    alert("購物車內尚無餐點，快去挑選好吃的烤豬吧！");
-                    return;
-                }
-                popup.classList.add('open');
-                overlay.style.display = 'block';
-            }
-        }
-
-        // 🎨 渲染並更新彈出式明細視窗裡面的 DOM 結構
-        function renderPopupItems() {
-            const container = document.getElementById('popup-items-container');
-            container.innerHTML = '';
-
-            if (cart.items.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#888; padding:10px;">購物車空空如也～</div>';
-                document.getElementById('cartPopup').classList.remove('open');
-                document.getElementById('cartOverlay').style.display = 'none';
-                return;
+                // ✅ 加入後重置選項
+                document.getElementById('sandwich-辣').checked = false;
+                document.getElementById('sandwich-醬汁').checked = false;
             }
 
-            cart.items.forEach((item) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'cart-list-item';
-                
-                let tagsText = item.customization.length > 0 ? `[${item.customization.join(', ')}]` : '無調整';
+            const cartItem = {
+                id: Date.now() + Math.random().toString(36).substring(2, 7),
+                item, size, price, customization, note: ''
+            };
 
-                itemDiv.innerHTML = `
-                    <div class="cart-list-item-header">
-                        <span>${item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'} ${item.size}</span>
-                        <span style="color:#b45309;">$${item.price}</span>
-                    </div>
-                    <div class="cart-list-item-tags">基礎調整：${tagsText}</div>
-                    
-                    <input type="text" class="cart-item-note-input" 
-                           placeholder="✍️ 填寫此份餐點備註（例如：大辣、肉焦一點...）" 
-                           value="${item.note}" 
-                           oninput="updateItemNote('${item.id}', this.value)">
-                    
-                    <button class="delete-item-btn" onclick="deleteCartItem('${item.id}')">×</button>
-                `;
-                container.appendChild(itemDiv);
-            });
-        }
-
-        // ✍️ 顧客即時輸入備註更新
-        function updateItemNote(id, text) {
-            let found = cart.items.find(i => i.id === id);
-            if (found) { found.note = text; }
-        }
-
-        // ❌ 刪除獨立單筆品項
-        function deleteCartItem(id) {
-            cart.items = cart.items.filter(i => i.id !== id);
+            cart.items.push(cartItem);
             calculateTotal();
+
+            btn.textContent = '✔ 已加入！';
+            setTimeout(() => { btn.textContent = '➕ 加入購物車'; }, 1000);
+
+        } catch (error) {
+            alert('加入購物車出錯: ' + error.message);
         }
+    }
 
-        // 🚀 送出訂單至資料庫（具備每日自動計單與最新優化提示文案）
-        async function confirmOrder(event) {
-            if(event) event.stopPropagation();
+    // 🧮 計算總金額
+    function calculateTotal() {
+        cart.total = cart.items.reduce((sum, i) => sum + i.price, 0);
+        document.getElementById('item-count').textContent = `🛒 已點項目: ${cart.items.length} 項`;
+        document.getElementById('total-price').textContent = `總金額: $${cart.total}`;
+        renderPopupItems();
+    }
 
+    // 🔄 切換購物車彈出視窗
+    function toggleCartPopup() {
+        const popup = document.getElementById('cartPopup');
+        const overlay = document.getElementById('cartOverlay');
+        if (popup.classList.contains('open')) {
+            popup.classList.remove('open');
+            overlay.style.display = 'none';
+        } else {
             if (cart.items.length === 0) {
-                alert("購物車是空的，請先加入項目！");
+                alert('購物車內尚無餐點，快去挑選好吃的烤豬吧！');
                 return;
             }
-
-            // 1. 檢查基本資料是否有填寫
-            const nameInput = document.getElementById('cust-name').value.trim();
-            const phoneInput = document.getElementById('cust-phone').value.trim();
-            const genderInput = document.querySelector('input[name="cust-gender"]:checked').value;
-
-            if (!nameInput) {
-                alert("請填寫您的姓氏，以便現場叫號取餐喔！");
-                document.getElementById('cust-name').focus();
-                return;
-            }
-            if (phoneInput.length !== 3) {
-                alert("請填寫完整的手機末三碼數字（共3碼）！");
-                document.getElementById('cust-phone').focus();
-                return;
-            }
-
-            // 2. 取得今天的台灣時間日期 (格式: YYYY-MM-DD)
-            const now = new Date();
-            const twTime = new Date(now.getTime() + (8 * 60 * 60 * 1000)); 
-            const todayStr = twTime.toISOString().split('T')[0];
-
-            let todayOrderNumber = 1; 
-
-            try {
-                // 🔍 查詢今天在資料庫裡已有幾筆單了
-                const countResponse = await fetch(`${API_URL}?created_at=gte.${todayStr}T00:00:00Z&select=id`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`
-                    }
-                });
-
-                if (countResponse.ok) {
-                    const existingOrders = await countResponse.json();
-                    todayOrderNumber = existingOrders.length + 1;
-                }
-
-                // 格式化當日單號為 3 位數字（例如 001）
-                const formattedOrderNumber = String(todayOrderNumber).padStart(3, '0');
-                const customerInfoStr = `${nameInput}${genderInput}(${phoneInput})`;
-
-                // 3. 將客戶資料黏在第一道菜的備註
-                const updatedItems = cart.items.map((item, index) => {
-                    if (index === 0) {
-                        return {
-                            ...item,
-                            note: item.note ? `${customerInfoStr} | 備註:${item.note}` : customerInfoStr
-                        };
-                    }
-                    return item;
-                });
-
-                const orderData = {
-                    total_price: cart.total,
-                    items: updatedItems
-                };
-
-                // 4. 正式寫入資料庫
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation' 
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(errText);
-                }
-
-                // ✨ 5. 彈出成功提示視窗（已更新為您的專屬溫馨提示文案）
-                alert(`點餐成功！餐點皆為現點現做，請您耐心等候！\n\n您的今日取餐編號為：#${formattedOrderNumber}！\n\n請依編號與稱謂至餐車取餐。`);
-                
-                // 成功後將狀態回歸、清空輸入框並關閉彈出窗
-                cart = { items: [], total: 0 };
-                document.getElementById('cust-name').value = '';
-                document.getElementById('cust-phone').value = '';
-                document.getElementById('gender-mr').checked = true;
-                calculateTotal();
-                document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
-
-            } catch (err) {
-                console.error("系統錯誤:", err);
-                alert("點餐失敗，請確認網路狀態！");
-            }
+            popup.classList.add('open');
+            overlay.style.display = 'block';
         }
-    </script>
+    }
+
+    // 🎨 渲染購物車品項
+    function renderPopupItems() {
+        const container = document.getElementById('popup-items-container');
+        container.innerHTML = '';
+
+        if (cart.items.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#888; padding:10px;">購物車空空如也～</div>';
+            document.getElementById('cartPopup').classList.remove('open');
+            document.getElementById('cartOverlay').style.display = 'none';
+            return;
+        }
+
+        cart.items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'cart-list-item';
+            const tagsText = item.customization.length > 0 ? `[${item.customization.join(', ')}]` : '無調整';
+            div.innerHTML = `
+                <div class="cart-list-item-header">
+                    <span>${item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'} ${item.size}</span>
+                    <span style="color:#b45309;">$${item.price}</span>
+                </div>
+                <div class="cart-list-item-tags">基礎調整：${tagsText}</div>
+                <input type="text" class="cart-item-note-input"
+                       placeholder="✍️ 填寫此份餐點備註（例如：肉焦一點...）"
+                       value="${item.note}"
+                       oninput="updateItemNote('${item.id}', this.value)">
+                <button class="delete-item-btn" onclick="deleteCartItem('${item.id}')">×</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // ✍️ 更新備註
+    function updateItemNote(id, text) {
+        const found = cart.items.find(i => i.id === id);
+        if (found) found.note = text;
+    }
+
+    // ❌ 刪除品項
+    function deleteCartItem(id) {
+        cart.items = cart.items.filter(i => i.id !== id);
+        calculateTotal();
+    }
+
+    // 🚀 確認點餐（二次確認機制）
+    function confirmOrder(event) {
+        if (event) event.stopPropagation();
+
+        if (cart.items.length === 0) {
+            alert('購物車是空的，請先加入項目！');
+            return;
+        }
+
+        const btn = document.getElementById('confirmBtn');
+
+        // 第一次按：變成紅色警示，等待二次確認
+        if (confirmStep === 0) {
+            confirmStep = 1;
+            btn.textContent = '⚠️ 再按一次確認送出';
+            btn.classList.add('confirming');
+
+            // 5 秒後自動還原
+            confirmTimer = setTimeout(() => {
+                resetConfirmBtn();
+            }, 5000);
+            return;
+        }
+
+        // 第二次按：正式送出
+        clearTimeout(confirmTimer);
+        resetConfirmBtn();
+        sendOrder();
+    }
+
+    function resetConfirmBtn() {
+        confirmStep = 0;
+        const btn = document.getElementById('confirmBtn');
+        btn.textContent = '🚀 確認點餐';
+        btn.classList.remove('confirming');
+    }
+
+    // 📡 送出訂單至資料庫
+    async function sendOrder() {
+        const nameInput = document.getElementById('cust-name').value.trim();
+        const phoneInput = document.getElementById('cust-phone').value.trim();
+        const genderInput = document.querySelector('input[name="cust-gender"]:checked').value;
+
+        if (!nameInput) {
+            alert('請填寫您的姓氏，以便現場叫號取餐喔！');
+            document.getElementById('cust-name').focus();
+            return;
+        }
+        if (phoneInput.length !== 3) {
+            alert('請填寫完整的手機末三碼數字（共3碼）！');
+            document.getElementById('cust-phone').focus();
+            return;
+        }
+
+        const customerName = `${nameInput}${genderInput}`;  // 例如「陳先生」
+        const customerPhone = phoneInput;                    // 例如「123」
+
+        const orderData = {
+            total_price: cart.total,
+            items: cart.items.map(item => ({
+                item: item.item,
+                size: item.size,
+                price: item.price,
+                customization: item.customization,
+                note: item.note
+            })),
+            customer_name: customerName,   // ✅ 獨立欄位，不塞進 items
+            customer_phone: customerPhone  // ✅ 獨立欄位
+            // daily_number 由資料庫 trigger 自動填入，前端不需要算
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'apikey': API_KEY,
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText);
+            }
+
+            // ✅ 從資料庫回傳值直接讀取 daily_number，不需要前端計算
+            const result = await response.json();
+            const dailyNumber = String(result[0].daily_number).padStart(3, '0');
+
+            alert(`點餐成功！餐點皆為現點現做，請您耐心等候！\n\n您的今日取餐編號為：#${dailyNumber}\n\n請依編號與稱謂至餐車取餐。`);
+
+            // 清空狀態
+            cart = { items: [], total: 0 };
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('gender-mr').checked = true;
+            document.querySelectorAll('.custom-options input[type="checkbox"]').forEach(el => el.checked = false);
+            document.getElementById('porchetta-large').checked = true;
+            calculateTotal();
+
+        } catch (err) {
+            console.error('系統錯誤:', err);
+            alert('點餐失敗，請確認網路狀態後再試！');
+        }
+    }
+</script>
+
 </body>
 </html>
