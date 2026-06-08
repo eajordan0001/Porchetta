@@ -233,9 +233,12 @@
   </div>
 
   <script>
-    // 🎯 自動代入金鑰
-    const SUPABASE_URL = "https://xylwvlidaldtknvlvrnr.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar"; 
+    // 🎯 核心防禦：自動過濾掉複製貼上可能產生的所有隱形零寬空白字元
+    const RAW_URL = "https://xylwvlidaldtknvlvrnr.supabase.co"; 
+    const RAW_KEY = "sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar"; 
+
+    const SUPABASE_URL = RAW_URL.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+    const SUPABASE_KEY = RAW_KEY.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
 
     // 1. 每秒刷新翻頁電子鐘
     function updateClockBoard() {
@@ -284,7 +287,7 @@
           }
         });
 
-        if (!response.ok) throw new Error('網路連線回應異常');
+        if (!response.ok) throw new Error(`網路連線回應異常 (HTTP ${response.status})`);
         const orders = await response.json();
 
         const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
@@ -339,7 +342,7 @@
       } catch (err) {
         orderListSection.innerHTML = `
           <div class="status-box" style="color: #c0392b; border-color: #c0392b;">
-            ❌ 出單系統連線失敗：${err.message}<br>請確認金鑰配置。
+            ❌ 出單系統連線失敗：${err.message}<br>請確認金鑰配置是否已被 GitHub 正常更新發布。
           </div>`;
       }
     }
