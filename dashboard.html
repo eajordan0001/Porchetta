@@ -233,7 +233,7 @@
   </div>
 
   <script>
-    // 🎯 核心防禦：自動過濾掉複製貼上可能產生的所有隱形零寬空白字元
+    // 🎯 強力清洗清除所有複製沾粘的髒控制碼
     const RAW_URL = "https://xylwvlidaldtknvlvrnr.supabase.co"; 
     const RAW_KEY = "sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar"; 
 
@@ -273,34 +273,44 @@
       document.getElementById('lastUpdateTime').textContent = `最後更新時間：${ampm} ${displayHour}:${min}:${ss} (每 10 秒自動同步庫存)`;
     }
 
-    // 2. 向 Supabase 撈取今日尚未出餐的即時訂單
+    // 2. 向 Supabase 撈取今日即時訂單
     async function fetchUnissuedOrders() {
       const orderListSection = document.getElementById('orderListSection');
       
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc&limit=30`, {
+        // 加上 cache: "no-store" 阻斷瀏覽器快取舊資料
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc&limit=50`, {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json'
+            'Accept': 'application/json',
+            'Prefer': 'return=representation'
           }
         });
 
-        if (!response.ok) throw new Error(`網路連線回應異常 (HTTP ${response.status})`);
+        if (!response.ok) throw new Error(`資料庫拒絕連線 (HTTP 狀態碼: ${response.status})`);
         const orders = await response.json();
 
-        const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+        // 🎯 改用標準時間切片，確保不會因裝置語系導致比對格式失敗
+        const d = new Date();
+        const tYYYY = d.getFullYear();
+        const tMM = String(d.getMonth() + 1).padStart(2, '0');
+        const tDD = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${tYYYY}-${tMM}-${tDD}`;
 
         const todaysOrders = orders.filter(o => {
-          const localDate = new Date(o.created_at).toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
-          return localDate === todayStr;
+          if (!o.created_at) return false;
+          // 擷取前10碼 YYYY-MM-DD
+          const orderDatePart = String(o.created_at).substring(0, 10);
+          return orderDatePart === todayStr;
         });
 
         if (todaysOrders.length === 0) {
           orderListSection.innerHTML = `
             <div class="status-box">
-              🎉 報告主廚！今日 (${todayStr}) 目前沒有新訂單，可以稍作休息！
+              🎉 報告主廚！今日 (${todayStr}) 目前資料庫無新出單紀錄，可以稍作休息！
             </div>`;
           return;
         }
@@ -309,7 +319,12 @@
         todaysOrders.forEach(order => {
           const dailyNumStr = order.daily_number ? `#${String(order.daily_number).padStart(4, '0')}` : `#${order.id}`;
           const phoneStr = order.customer_phone ? `[${String(order.customer_phone).trim().slice(-4)}]` : '';
-          const timeDetail = new Date(order.created_at).toLocaleTimeString('zh-TW', {timeZone: 'Asia/Taipei', hour: '2-digit', minute:'2-digit', hour12: false});
+          
+          let timeDetail = "未知時間";
+          if (order.created_at) {
+            const dateObj = new Date(order.created_at);
+            timeDetail = String(dateObj.getHours()).padStart(2, '0') + ":" + String(dateObj.getMinutes()).padStart(2, '0');
+          }
 
           let itemsHtml = '';
           if (order.items) {
@@ -342,7 +357,7 @@
       } catch (err) {
         orderListSection.innerHTML = `
           <div class="status-box" style="color: #c0392b; border-color: #c0392b;">
-            ❌ 出單系統連線失敗：${err.message}<br>請確認金鑰配置是否已被 GitHub 正常更新發布。
+            ❌ 出單系統連線失敗：${err.message}<br>請確認上傳後是否已等待 GitHub 2 分鐘完成發佈部署，或嘗試改用無痕分頁重新讀取。
           </div>`;
       }
     }
