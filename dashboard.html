@@ -252,8 +252,7 @@
             <button class="settle-btn" onclick="generateDailyReport()">🚧 結束營業（結算今日營收）</button>
         </header>
 
-        <div class="order-list" id="order-container">
-            </div>
+        <div class="order-list" id="order-container"></div>
     </div>
 
     <div class="modal" id="report-modal">
@@ -271,7 +270,7 @@
         const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-        // 🕒 實時更新翻頁鐘 (格式：YYYY-MM-DD HH-MM-SS)
+        // 🕒 實時更新翻頁鐘
         function updateFlipClock() {
             const now = new Date();
             const year = String(now.getFullYear());
@@ -304,10 +303,9 @@
             document.getElementById('flip-clock-target').innerHTML = clockHtml;
         }
 
-        // 📅 ✨【全新除錯功能】動態獲取今天台灣時間的 00:00 ISO 字串
+        // 📅 獲取今天台灣時間的 00:00 ISO 字串
         function getTodayMidnightISO() {
             const now = new Date();
-            // 強制調整為台灣時區 (GMT+8) 的當天 00:00:00
             const tzOffset = 8 * 60 * 60 * 1000;
             const twTime = new Date(now.getTime() + tzOffset);
             
@@ -315,19 +313,26 @@
             const month = String(twTime.getUTCMonth() + 1).padStart(2, '0');
             const day = String(twTime.getUTCDate()).padStart(2, '0');
             
-            // 回傳符合資料庫的標準 ISO 格式時間（台灣時間的 00:00:00 換算回 UTC）
             const midnightTW = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
             return midnightTW.toISOString();
         }
 
-        // 🔄 核心載入系統 (除錯：加入今日時間過濾，防止撈到歷史舊單導致單號不一致)
+        // 🔄 核心載入系統 (徹底修復單號不一致問題)
         async function fetchOrders() {
             try {
                 document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
                 
-                const midnightISO = getTodayMidnightISO(); // 🎯 只拿今天 00:00 以後的訂單
+                const midnightISO = getTodayMidnightISO(); 
                 
-                // 🛠️ 篩選優化：status=eq.pending 且 created_at 必須大於等於今天的午夜 00:00
+                // 🛠️ 步驟 1：先抓出今天「已完成（completed）」的訂單數量
+                const doneResponse = await fetch(`${API_URL}?status=eq.completed&created_at=gte.${midnightISO}`, {
+                    method: 'GET',
+                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
+                });
+                const completedOrders = await doneResponse.json();
+                const completedCount = completedOrders.length; // 今日已核銷單數
+
+                // 🛠️ 步驟 2：抓出今天「未出餐（pending）」的排隊訂單
                 const response = await fetch(`${API_URL}?status=eq.pending&created_at=gte.${midnightISO}&order=created_at.asc`, {
                     method: 'GET',
                     headers: {
@@ -346,10 +351,10 @@
                     return;
                 }
 
-                // ✨ 單號轉換邏輯保持不變，因為已經排除了前幾天的舊資料，現在會精準對齊點餐系統的 #001
-                const processedOrders = pendingOrders.map((order) => {
-                    let num = order.id % 100 === 0 ? 100 : order.id % 100;
-                    const formattedNum = String(num).padStart(3, '0');
+                // 🛠️ 步驟 3：捨棄原本 id % 100 的邏輯，改用「已完成數 + 排隊索引」動態生成單號
+                const processedOrders = pendingOrders.map((order, index) => {
+                    let currentTodayNumber = completedCount + (index + 1);
+                    const formattedNum = String(currentTodayNumber).padStart(3, '0');
                     return { ...order, dailyNumber: formattedNum };
                 });
 
@@ -399,7 +404,7 @@
             });
         }
 
-        // 🚀 廚師點擊「完成出餐」按鈕
+        // 🚀 完成出餐按鈕
         async function completeOrder(orderId, buttonEl) {
             if (!confirm("確定這筆餐點已經製作完成，要核銷出單嗎？")) return;
             
@@ -432,11 +437,11 @@
             }
         }
 
-        // 📊 生成結算報表文字 (除錯：同步改成撈今天 00:00 到現在的所有已完成營收)
+        // 📊 生成結算報表文字
         async function generateDailyReport() {
             if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
 
-            const midnightISO = getTodayMidnightISO(); // 🎯 結算時間點精準對齊今日 00:00
+            const midnightISO = getTodayMidnightISO(); 
 
             try {
                 document.getElementById('loading-status').textContent = "正在結算今日歷史訂單營收...";
