@@ -56,42 +56,42 @@
     }
 
     /* ==========================================================================
-       🛠️ 2. 核心修正：翻頁日期看板樣式 (解決右側爆開被切除的 Bug)
+       🛠️ 2. 核心修正：翻頁「日期+時間」看板樣式 (寬度精細化，完美塞進螢幕)
        ========================================================================== */
-    /* 翻頁日期大容器 */
+    /* 翻頁大底座容器 */
     .flip-date-container {
-      background-color: #1a241a; /* 經典深綠底色 */
+      background-color: #1a241a; 
       border-radius: 12px;
-      padding: 6px 4px;          /* ⚡ 縮減上下內邊距，保留手機呼吸空間 */
+      padding: 8px 4px;          
       margin: 15px 0;
       display: flex;
-      justify-content: center;   /* 居中對齊 */
+      justify-content: center;   
       align-items: center;
-      flex-wrap: nowrap;         /* ⚡ 強制橫向一整排，絕對不換行 */
+      flex-wrap: nowrap;         /* 強制橫向一整排，絕對不換行 */
       width: 100%;
       max-width: 100%;
-      box-sizing: border-box;    /* ⚡ 防止 padding 撐破螢幕寬度 */
-      overflow: hidden;          /* ⚡ 超出部分自動遮罩防滑動錯位 */
+      box-sizing: border-box;    
+      overflow: hidden;          
     }
 
-    /* 每一格獨立的數字/符號卡片 (例如：2, 0, 2, 6, -, 0, 6) */
+    /* 每一格獨立的數字卡片 */
     .flip-digit {
       background: linear-gradient(to bottom, #2c352c 0%, #121812 100%);
-      color: #52b752;            /* 科技感復古綠字 */
-      font-size: 22px !important;/* ⚡ 關鍵修正：將原本撐爆的字型精準縮小至 22px */
+      color: #52b752;            
+      font-size: 16px !important;/* ⚡ 關鍵修正：因為加了時間字數變多，字型縮小到 16px 最完美 */
       font-weight: bold;
-      width: 24px !important;    /* ⚡ 關鍵修正：縮減每格卡片固定寬度 */
-      height: 38px !important;   /* ⚡ 關鍵修正：縮減每格卡片固定高度 */
-      line-height: 38px;
+      width: 16px !important;    /* ⚡ 關鍵修正：寬度縮緊至 16px */
+      height: 28px !important;   /* ⚡ 高度等比例縮減 */
+      line-height: 28px;
       text-align: center;
-      margin: 0 1px !important;  /* ⚡ 關鍵修正：將左右卡片間距壓到極致的 1px */
-      border-radius: 4px;
-      box-shadow: inset 0px 1px 3px rgba(255,255,255,0.2), 0px 2px 4px rgba(0,0,0,0.5);
+      margin: 0 1px !important;  /* 卡片左右靠緊 */
+      border-radius: 3px;
+      box-shadow: inset 0px 1px 2px rgba(255,255,255,0.2), 0px 2px 3px rgba(0,0,0,0.5);
       border-bottom: 1px solid #0a0e0a;
       position: relative;
     }
 
-    /* 翻頁卡片中間那條亮細橫線效果 */
+    /* 翻頁卡片中間那條細橫線效果 */
     .flip-digit::after {
       content: '';
       position: absolute;
@@ -102,17 +102,22 @@
       background-color: rgba(0, 0, 0, 0.4);
     }
 
-    /* 連字號分隔符號格的特殊處理 (讓 - 號稍微靠攏一些) */
-    .flip-dash {
+    /* 符號格特殊處理 (減號 - 號、冒號 : 號、空格) */
+    .flip-dash, .flip-colon, .flip-space {
       background: none !important;
       box-shadow: none !important;
       border: none !important;
-      color: #3b873b;
-      width: 14px !important;    /* ⚡ 縮減連字號卡片的寬度 */
-      font-size: 20px;
+      color: #439b43;
+      width: 8px !important;     /* ⚡ 符號卡片寬度壓窄，省下空間給數字 */
+      font-size: 15px;
     }
-    .flip-dash::after {
-      display: none;             /* 分隔線不需要中央橫線 */
+    .flip-dash::after, .flip-colon::after, .flip-space::after {
+      display: none;             
+    }
+    
+    /* 空格專用寬度 */
+    .flip-space {
+      width: 6px !important;
     }
 
     /* ==========================================================================
@@ -163,20 +168,10 @@
 
   <div class="dashboard-card">
     <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
-    <div class="update-time">最後更新時間：下午 9:33:50 (每 10 秒自動同步)</div>
+    <div class="update-time" id="lastUpdateTime">最後更新時間：下午 9:33:50 (每 10 秒自動同步)</div>
     
     <div class="flip-date-container" id="dateFlipBoard">
-      <div class="flip-digit">2</div>
-      <div class="flip-digit">0</div>
-      <div class="flip-digit">2</div>
-      <div class="flip-digit">6</div>
-      <div class="flip-digit flip-dash">-</div>
-      <div class="flip-digit">0</div>
-      <div class="flip-digit">6</div>
-      <div class="flip-digit flip-dash">-</div>
-      <div class="flip-digit">0</div>
-      <div class="flip-digit">8</div>
-    </div>
+      </div>
     
     <button class="btn-checkout" onclick="triggerLineCheckout()">
       🚧 結束營業（結算今日營收）
@@ -188,39 +183,58 @@
   </div>
 
   <script>
-    // 1. 自動初始化當天日期到翻頁看版上
-    function initDateBoard() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const dateString = `${yyyy}-${mm}-${dd}`; // 例如 "2026-06-08"
+    // 🎯 核心除錯 JavaScript：整合日期與即時更新時間
+    function updateClockBoard() {
+      const now = new Date();
+      
+      // 1. 產生日期與時間參數
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      
+      // 組合出完整字串：例如 "2026-06-08 22:05:14"
+      const fullDateTimeString = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
       
       const container = document.getElementById('dateFlipBoard');
-      container.innerHTML = ''; // 清空預設
+      container.innerHTML = ''; // 清空上一秒的畫面
       
-      // 依序拆解字元產生對應樣式卡片
-      for (let char of dateString) {
+      // 2. 逐字拆解並依據字元渲染成不同的翻頁樣式
+      for (let char of fullDateTimeString) {
         const div = document.createElement('div');
+        
         if (char === '-') {
           div.className = 'flip-digit flip-dash';
           div.textContent = '-';
+        } else if (char === ':') {
+          div.className = 'flip-digit flip-colon';
+          div.textContent = ':';
+        } else if (char === ' ') {
+          div.className = 'flip-digit flip-space';
+          div.textContent = ''; // 空格不顯示字
         } else {
           div.className = 'flip-digit';
           div.textContent = char;
         }
         container.appendChild(div);
       }
+      
+      // 順便同步刷新上方文字區的小標題時間
+      const ampm = now.getHours() >= 12 ? '下午' : '上午';
+      const displayHour = now.getHours() % 12 || 12;
+      document.getElementById('lastUpdateTime').textContent = `最後更新時間：${ampm} ${displayHour}:${min}:${ss} (每秒自動同步)`;
     }
 
-    // 2. 點擊按鈕時的提示 (未來可依需求擴充直連 GAS 呼叫 #結帳)
     function triggerLineCheckout() {
       alert("💡 提示：請回到「阿德師傅結帳小秘書」LINE 聊天室中，輸入「#結帳」指令，即可自動將今日 Supabase 數據同步導出至 Google 試算表！");
     }
 
-    // 頁面載入時自動執行日期版初始化
+    // ⚡ 啟動器：頁面載入後立即執行，並設定每 1000 毫秒（1秒）自動跳動
     window.onload = function() {
-      initDateBoard();
+      updateClockBoard(); // 進入頁面先跑第一次
+      setInterval(updateClockBoard, 1000); // 隨後每秒自動刷新
     };
   </script>
 
