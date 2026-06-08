@@ -27,7 +27,26 @@
         }
         h1 { margin: 0; font-size: 24px; }
         
-        /* 🔧 收攤結算按鈕樣式 */
+        /* ✨【全新優化】醒目的實時時鐘外框與字體 */
+        .clock-box {
+            border: 4px solid #16a34a; /* 醒目的翠綠色外框 */
+            background-color: #f0fdf4; /* 淡淡的綠色底色，增加對比 */
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin: 15px auto;
+            display: inline-block; /* 讓外框寬度剛好符合時間大小 */
+            box-shadow: 0 0 15px rgba(22, 163, 74, 0.4); /* 霓虹發光感，極度吸睛 */
+        }
+        #current-time-clock {
+            font-size: 38px; /* 特大字體 */
+            font-weight: 900;
+            color: #16a34a; /* 綠色高對比字體 */
+            font-family: monospace; /* 使用等寬字體，防止秒數跳動時文字抖動 */
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        /* 🚧 收攤按鈕樣式 */
         .settle-btn {
             background-color: #7c2d12;
             color: #ffffff;
@@ -203,247 +222,6 @@
     <div class="container">
         <header>
             <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
-            <div id="loading-status" style="font-size:14px; color:#666; margin-top:5px;">正在連線資料庫...</div>
-            <button class="settle-btn" onclick="generateDailyReport()">🚧 結束營業（結算今日營收）</button>
-        </header>
-
-        <div class="order-list" id="order-container">
-            </div>
-    </div>
-
-    <div class="modal" id="report-modal">
-        <div class="modal-content">
-            <div class="modal-title">📊 今日擺攤營業結算報表</div>
-            <textarea class="report-textarea" id="report-text" readonly></textarea>
-            <div class="modal-btn-group">
-                <button class="modal-btn copy-btn" onclick="copyReportText()">📋 一鍵複製報表文字</button>
-                <button class="modal-btn close-btn" onclick="closeModal()">關閉</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
-        const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
-
-        // 🔄 核心載入系統
-        async function fetchOrders() {
-            try {
-                document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
-                
-                const response = await fetch(`${API_URL}?status=eq.pending&order=created_at.asc`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) throw new Error("資料庫拒絕回應");
-                const pendingOrders = await response.json();
-                
-                if (pendingOrders.length === 0) {
-                    renderOrderList([]);
-                    document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
-                    return;
-                }
-
-                const processedOrders = pendingOrders.map((order) => {
-                    let num = order.id % 100 === 0 ? 100 : order.id % 100;
-                    const formattedNum = String(num).padStart(3, '0');
-                    return { ...order, dailyNumber: formattedNum };
-                });
-
-                renderOrderList(processedOrders);
-                document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading-status').textContent = "⚠️ 連線中或暫無訂單，將於 10 秒後自動重新讀取...";
-            }
-        }
-
-        // 🎨 渲染出單畫面
-        function renderOrderList(orders) {
-            const container = document.getElementById('order-container');
-            container.innerHTML = '';
-
-            if (orders.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; font-size:18px; color:#888; background:#fff; border-radius:8px; border:2px dashed #a67c52;">🎉 報告主廚！目前沒有未出餐的訂單，可以稍作休息！</div>';
-                return;
-            }
-
-            orders.forEach((order) => {
-                const card = document.createElement('div');
-                card.className = 'order-card';
-
-                const time = new Date(order.created_at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-                
-                let itemsHtml = '';
-                if (Array.isArray(order.items)) {
-                    order.items.forEach(item => {
-                        let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
-                        let noteStr = item.note ? ` <span style="color:#b45309; font-weight:bold;">(備註: ${item.note})</span>` : '';
-                        itemsHtml += `<div class="item-line">🔹 ${item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'} ${item.size} x 1區 - $${item.price}${customStr}${noteStr}</div>`;
-                    });
-                }
-
-                card.innerHTML = `
-                    <div class="priority-badge">🚨 優先出餐</div>
-                    <div class="order-id">單號：#${order.dailyNumber}</div>
-                    <div class="order-time">收單時間：${time} ｜ 總金額：$${order.total_price}</div>
-                    <div class="order-items">${itemsHtml}</div>
-                    <button class="complete-btn" onclick="completeOrder('${order.id}', this)">✔ 完成出餐</button>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // 🚀 廚師點擊「完成出餐」按鈕
-        async function completeOrder(orderId, buttonEl) {
-            if (!confirm("確定這筆餐點已經製作完成，要核銷出單嗎？")) return;
             
-            buttonEl.disabled = true;
-            buttonEl.textContent = "⏱ 處理中...";
-
-            try {
-                const response = await fetch(`${API_URL}?id=eq.${orderId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify({ status: 'completed' })
-                });
-
-                if (response.ok) {
-                    fetchOrders();
-                } else {
-                    alert("核銷失敗，請重新再試一次！");
-                    buttonEl.disabled = false;
-                    buttonEl.textContent = "✔ 完成出餐";
-                }
-            } catch (error) {
-                alert("網路異常，無法變更出餐狀態！");
-                buttonEl.disabled = false;
-                buttonEl.textContent = "✔ 完成出餐";
-            }
-        }
-
-        // 📊 🚀【全新功能：生成結算報表文字】
-        async function generateDailyReport() {
-            if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
-
-            // 自動設定營業班次判斷基準點：取今天下午 15:00 以後的單（防跨夜被切斷）
-            const now = new Date();
-            const shiftStart = new Date();
-            shiftStart.setHours(15, 0, 0, 0); // 設定為今天的 15:00
-            
-            // 如果現在剛好是凌晨 00:00 ~ 04:00，表示是昨晚擺攤到現在，基準點要往前推一天
-            if (now.getHours() < 5) {
-                shiftStart.setDate(shiftStart.getDate() - 1);
-            }
-
-            // 將篩選時間轉換成標準 ISO 字串
-            const shiftStartISO = shiftStart.toISOString();
-
-            try {
-                document.getElementById('loading-status').textContent = "正在結算今日歷史訂單營收...";
-                
-                // 撈取今日下午 15:00 之後所有「已完成」的訂單
-                const response = await fetch(`${API_URL}?status=eq.completed&created_at=gte.${shiftStartISO}&order=created_at.asc`, {
-                    method: 'GET',
-                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-                });
-
-                if (!response.ok) throw new Error("撈取歷史資料失敗");
-                const completedOrders = await response.json();
-
-                // 數據分析核心
-                let totalRevenue = 0;
-                let totalOrders = completedOrders.length;
-                let pigLarge = 0;   // 烤豬大份
-                let pigSmall = 0;   // 烤豬小份
-                let sandwichLarge = 0; // 三明治大份
-                let sandwichSmall = 0; // 三明治小份
-
-                completedOrders.forEach(order => {
-                    totalRevenue += Number(order.total_price || 0);
-                    if (Array.isArray(order.items)) {
-                        order.items.forEach(item => {
-                            const name = item.item;
-                            const size = item.size;
-                            if (name === 'Porchetta') {
-                                if (size === '大份') pigLarge++; else pigSmall++;
-                            } else {
-                                if (size === '大份') sandwichLarge++; else sandwichSmall++;
-                            }
-                        });
-                    }
-                });
-
-                // 取得台灣目前的日期格式 (YYYY-MM-DD)
-                const twDateStr = new Date(now.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
-
-                // 📝 組合出要傳給 Line 機器人的格式化報表（開頭加上關鍵字觸發詞）
-                let reportString = `阿德師擺攤營業結帳報表\n`;
-                reportString += `=====================\n`;
-                reportString += `📅 結算日期：${twDateStr}\n`;
-                reportString += `💰 今日總營業額：$${totalRevenue} 元\n`;
-                reportString += `📦 總出單量：${totalOrders} 筆訂單\n`;
-                reportString += `=====================\n`;
-                reportString += `🐖 義式脆皮烤豬明細：\n`;
-                reportString += `   - 大份：${pigLarge} 份\n`;
-                reportString += `   - 小份：${pigSmall} 份\n`;
-                reportString += `🥪 但丁三明治明細：\n`;
-                reportString += `   - 大份：${sandwichLarge} 份\n`;
-                reportString += `   - 小份：${sandwichSmall} 份\n`;
-                reportString += `=====================\n`;
-                reportString += `對帳單建檔完畢，請核對。`;
-
-                // 填入視窗並顯示
-                document.getElementById('report-text').value = reportString;
-                document.getElementById('report-modal').style.display = 'flex';
-                document.getElementById('loading-status').textContent = "營收結算報表已生成！";
-
-            } catch (error) {
-                console.error(error);
-                alert("結算失敗，請確認資料庫連線或稍後再試！");
-                fetchOrders();
-            }
-        }
-
-        // 📋 複製文字到剪貼簿
-        function copyReportText() {
-            const textarea = document.getElementById('report-text');
-            textarea.select();
-            textarea.setSelectionRange(0, 99999); // 針對手機優化選擇
-
-            try {
-                navigator.clipboard.writeText(textarea.value);
-                alert("🎉 報表複製成功！趕快打開 LINE 貼給您的對帳機器人吧！");
-                closeModal();
-            } catch (err) {
-                // 保險備用複製法
-                document.execCommand('copy');
-                alert("🎉 報表複製成功！(備用模式)");
-                closeModal();
-            }
-        }
-
-        // ❌ 關閉視窗
-        function closeModal() {
-            document.getElementById('report-modal').style.display = 'none';
-            fetchOrders(); // 恢復正常即時監聽 pending 訂單
-        }
-
-        // ⏱ 啟動系統
-        fetchOrders();
-        setInterval(fetchOrders, 10000);
-    </script>
-</body>
-</html>
+            <div class="clock-box">
+                <div id="current-time-clock">
