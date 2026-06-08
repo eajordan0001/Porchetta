@@ -393,7 +393,6 @@
 
                 const time = new Date(order.created_at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
                 
-                // 🛠️【精確修正】：讀取正確的 customer_name 與 customer_phone 欄位
                 const custName = order.customer_name ? order.customer_name : '未填寫';
                 const custPhone = order.customer_phone ? order.customer_phone : '---';
 
@@ -406,7 +405,6 @@
                     });
                 }
 
-                // 畫面上渲染客戶姓名與電話末三碼
                 card.innerHTML = `
                     <div class="priority-badge">🚨 優先出餐</div>
                     <div class="order-id">單號：#${order.dailyNumber}</div>
@@ -453,7 +451,7 @@
             }
         }
 
-        // 📊 生成結算報表文字（同步修正欄位名稱）
+        // 📊 【核心重構】：優化生成結算報表文字，讓 GAS 能完美抓取流水帳！
         async function generateDailyReport() {
             if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
 
@@ -478,52 +476,53 @@
                 const now = new Date();
                 const twDateStr = new Date(now.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
+                // 🌟 改用 GAS 能 100% 聽懂的格式
                 let reportString = `阿德師擺攤營業結帳報表\n`;
-                reportString += `日期：${twDateStr}\n`; 
+                reportString += `結帳日期：${twDateStr}\n`; 
+                reportString += `今日總營業額：$${totalRevenue} 元\n`; // 預留位置，最後用取代的
+                reportString += `總出單量：${totalOrders} 筆訂單\n`;
                 reportString += `=====================\n`;
-                reportString += `📋 今日出單明細：\n\n`;
+                reportString += `📋 每日訂單詳細流水帳：\n`;
 
                 completedOrders.forEach((order, index) => {
                     totalRevenue += Number(order.total_price || 0);
-                    
                     let formattedNum = String(index + 1).padStart(3, '0');
                     
-                    // 🛠️【精確修正】：報表內也同步對齊為 customer_name 與 customer_phone
                     const custName = order.customer_name ? order.customer_name : '未填寫';
                     const custPhone = order.customer_phone ? order.customer_phone : '---';
 
-                    reportString += `單號：#${formattedNum} ($${order.total_price}) — [${custName} / 尾數:${custPhone}]\n`;
-
+                    // 🛠️ 關鍵改動：把「單號、金額、客資、餐點」全部整理成一條規律的「🔹開頭」流水帳，方便 GAS 完美拆解入表！
+                    let orderItemsStr = "";
                     if (Array.isArray(order.items)) {
-                        order.items.forEach(item => {
+                        orderItemsStr = order.items.map(item => {
                             if (item.item === 'Porchetta') {
                                 if (item.size === '大份') pigLarge++; else pigSmall++;
                             } else {
                                 if (item.size === '大份') sandwichLarge++; else sandwichSmall++;
                             }
-
                             let name = item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治';
-                            let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
-                            let noteStr = item.note ? ` (備註: ${item.note})` : '';
-                            
-                            reportString += ` 🔹 ${name} (${item.size})${customStr}${noteStr}\n`;
-                        });
+                            let customStr = item.customization && item.customization.length > 0 ? `[${item.customization.join(', ')}]` : '';
+                            let noteStr = item.note ? `(細節備註: ${item.note})` : '';
+                            return `${name}(${item.size}) x 1${customStr}${noteStr}`;
+                        }).join(" ＋ ");
                     }
-                    reportString += `---------------------\n`;
+
+                    // 這一行同時包含了 GAS 需要的所有要素！
+                    reportString += `🔹 單號：#${formattedNum} ｜ 客戶：${custName} (${custPhone}) ｜ 金額：$${order.total_price} ｜ 餐點：${orderItemsStr}\n`;
                 });
 
+                // 把真正的總營業額塞回開頭
+                reportString = reportString.replace(`今日總營業額：$0 元`, `今日總營業額：$${totalRevenue} 元`);
+
                 reportString += `=====================\n`;
-                reportString += `總金額：$${totalRevenue}\n`; 
-                reportString += `總單數：${totalOrders} 單\n`;
+                reportString += `🐖 義式脆皮烤豬明細：\n`;
+                reportString += `  - 大份：${pigLarge} 份\n`;
+                reportString += `  - 小份：${pigSmall} 份\n`;
+                reportString += `🥪 但丁三明治明細：\n`;
+                reportString += `  - 大份：${sandwichLarge} 份\n`;
+                reportString += `  - 小份：${sandwichSmall} 份\n`;
                 reportString += `=====================\n`;
-                reportString += `🐖 義式脆皮烤豬 總計\n`;
-                reportString += `   - 大份：${pigLarge}\n`;
-                reportString += `   - 小份：${pigSmall}\n`;
-                reportString += `🥪 但丁三明治 總計\n`;
-                reportString += `   - 大份：${sandwichLarge}\n`;
-                reportString += `   - 小份：${sandwichSmall}\n`;
-                reportString += `=====================\n`;
-                reportString += `對帳單建檔完畢。`;
+                reportString += `對帳單建檔完畢，請核對。`;
 
                 document.getElementById('report-text').value = reportString;
                 document.getElementById('report-modal').style.display = 'flex';
