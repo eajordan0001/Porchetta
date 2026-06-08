@@ -131,6 +131,7 @@
             font-weight: 900;
         }
         .order-list .order-card:first-child .order-time,
+        .order-list .order-card:first-child .order-customer,
         .order-list .order-card:first-child .item-line {
             font-size: 22px; 
             line-height: 1.6;
@@ -144,10 +145,20 @@
             border-bottom: 1px dashed #a67c52;
             padding-bottom: 5px;
         }
+        .order-customer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #b45309;
+            background-color: #fef3c7;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
         .order-time {
             font-size: 14px;
             color: #78350f;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         .order-items { margin-bottom: 20px; }
         .item-line {
@@ -208,7 +219,7 @@
         }
         .report-textarea {
             width: 100%;
-            height: 350px; /* 微調高度以容納更多內容 */
+            height: 380px; 
             font-family: monospace;
             font-size: 14px;
             padding: 10px;
@@ -317,14 +328,14 @@
             return midnightTW.toISOString();
         }
 
-        // 🔄 核心載入系統 (對齊計數號碼)
+        // 🔄 核心載入系統
         async function fetchOrders() {
             try {
                 document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
                 
                 const midnightISO = getTodayMidnightISO(); 
                 
-                // 🛠️ 先抓出今天「已完成（completed）」的訂單數量
+                // 🛠️ 先抓出今天已完成數量
                 const doneResponse = await fetch(`${API_URL}?status=eq.completed&created_at=gte.${midnightISO}`, {
                     method: 'GET',
                     headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
@@ -332,7 +343,7 @@
                 const completedOrders = await doneResponse.json();
                 const completedCount = completedOrders.length;
 
-                // 🛠️ 抓出今天「未出餐（pending）」的排隊訂單
+                // 🛠️ 抓出今天排隊中的訂單
                 const response = await fetch(`${API_URL}?status=eq.pending&created_at=gte.${midnightISO}&order=created_at.asc`, {
                     method: 'GET',
                     headers: {
@@ -351,7 +362,6 @@
                     return;
                 }
 
-                // 動態流水號轉換邏輯
                 const processedOrders = pendingOrders.map((order, index) => {
                     let currentTodayNumber = completedCount + (index + 1);
                     const formattedNum = String(currentTodayNumber).padStart(3, '0');
@@ -383,18 +393,24 @@
 
                 const time = new Date(order.created_at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
                 
+                // 🛠️【精確修正】：讀取正確的 customer_name 與 customer_phone 欄位
+                const custName = order.customer_name ? order.customer_name : '未填寫';
+                const custPhone = order.customer_phone ? order.customer_phone : '---';
+
                 let itemsHtml = '';
                 if (Array.isArray(order.items)) {
                     order.items.forEach(item => {
                         let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
-                        let noteStr = item.note ? ` <span style="color:#b45309; font-weight:bold;">(備註: ${item.note})</span>` : '';
+                        let noteStr = item.note ? ` <span style="color:#b45309; font-weight:bold;">(細節備註: ${item.note})</span>` : '';
                         itemsHtml += `<div class="item-line">🔹 ${item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'} ${item.size} x 1區 - $${item.price}${customStr}${noteStr}</div>`;
                     });
                 }
 
+                // 畫面上渲染客戶姓名與電話末三碼
                 card.innerHTML = `
                     <div class="priority-badge">🚨 優先出餐</div>
                     <div class="order-id">單號：#${order.dailyNumber}</div>
+                    <div class="order-customer">👤 客戶：${custName} ｜ 📱 手機末3碼：${custPhone}</div>
                     <div class="order-time">收單時間：${time} ｜ 總金額：$${order.total_price}</div>
                     <div class="order-items">${itemsHtml}</div>
                     <button class="complete-btn" onclick="completeOrder('${order.id}', this)">✔ 完成出餐</button>
@@ -437,7 +453,7 @@
             }
         }
 
-        // 📊 生成分單明細版結算報表文字
+        // 📊 生成結算報表文字（同步修正欄位名稱）
         async function generateDailyReport() {
             if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
 
@@ -467,24 +483,25 @@
                 reportString += `=====================\n`;
                 reportString += `📋 今日出單明細：\n\n`;
 
-                // 🔄 ✨【核心優化】：循環今日每一筆已完成訂單，依照流水單號列出明細與備註
                 completedOrders.forEach((order, index) => {
                     totalRevenue += Number(order.total_price || 0);
                     
-                    // 根據索引自動計算出對齊的 3 位數單號 (e.g., #001)
                     let formattedNum = String(index + 1).padStart(3, '0');
-                    reportString += `單號：#${formattedNum} ($${order.total_price})\n`;
+                    
+                    // 🛠️【精確修正】：報表內也同步對齊為 customer_name 與 customer_phone
+                    const custName = order.customer_name ? order.customer_name : '未填寫';
+                    const custPhone = order.customer_phone ? order.customer_phone : '---';
+
+                    reportString += `單號：#${formattedNum} ($${order.total_price}) — [${custName} / 尾數:${custPhone}]\n`;
 
                     if (Array.isArray(order.items)) {
                         order.items.forEach(item => {
-                            // 計算總數量統計
                             if (item.item === 'Porchetta') {
                                 if (item.size === '大份') pigLarge++; else pigSmall++;
                             } else {
                                 if (item.size === '大份') sandwichLarge++; else sandwichSmall++;
                             }
 
-                            // 拼湊單筆餐點明細文字
                             let name = item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治';
                             let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
                             let noteStr = item.note ? ` (備註: ${item.note})` : '';
@@ -495,7 +512,6 @@
                     reportString += `---------------------\n`;
                 });
 
-                // 📊 報表最下方保留加總與統計欄位
                 reportString += `=====================\n`;
                 reportString += `總金額：$${totalRevenue}\n`; 
                 reportString += `總單數：${totalOrders} 單\n`;
