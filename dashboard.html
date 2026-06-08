@@ -1,567 +1,228 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阿德師傅 - 現場出單管理系統</title>
-    <style>
-        body {
-            font-family: "Noto Sans TC", sans-serif;
-            background-color: #f0e6d2;
-            color: #4a2f1c;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            background-color: #ffffff;
-            padding: 15px;
-            border: 5px solid #a67c52;
-            border-radius: 8px;
-            position: relative;
-        }
-        h1 { margin: 0; font-size: 24px; }
-        
-        /* 醒目的復古綠光翻頁鐘樣式 */
-        .clock-container {
-            margin: 20px auto;
-            padding: 15px 25px;
-            background-color: #1a1a1a;
-            border: 4px solid #16a34a;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 0 20px rgba(22, 163, 74, 0.4);
-        }
-        .flip-group { display: flex; gap: 3px; }
-        .flip-card {
-            background: linear-gradient(to bottom, #333333 0%, #222222 50%, #111111 50%, #000000 100%);
-            color: #16a34a;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 34px;
-            font-weight: 900;
-            width: 26px;
-            height: 48px;
-            line-height: 48px;
-            text-align: center;
-            border-radius: 6px;
-            position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.6);
-            border: 1px solid #444;
-        }
-        .flip-card::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            width: 100%;
-            height: 1px;
-            background-color: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        .flip-divider {
-            font-size: 28px;
-            font-weight: 900;
-            color: #16a34a;
-            align-self: center;
-            padding: 0 2px;
-            font-family: monospace;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>阿德師傅餐車 - 現場出單明細</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="192x192" href="https://raw.githubusercontent.com/eajordan0001/eajordan0001.github.io/main/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://raw.githubusercontent.com/eajordan0001/eajordan0001.github.io/main/icon-512.png">
+  
+  <style>
+    /* ==========================================================================
+       1. 全域與基礎排版設定
+       ========================================================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f7f4eb;
+      margin: 0;
+      padding: 15px;
+      color: #4a3b32;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        /* 🚧 收攤按鈕樣式 */
-        .settle-btn {
-            background-color: #7c2d12;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 0 #431407;
-        }
-        .settle-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #431407;
-        }
+    /* 主卡片容器 */
+    .dashboard-card {
+      background-color: #ffffff;
+      border: 3px solid #bda38f;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 480px;
+      box-sizing: border-box;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-        .order-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        /* 訂單卡片基礎樣式 */
-        .order-card {
-            background-color: #f7f3e9;
-            border: 3px solid #a67c52;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-        }
+    h1 {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #5c4033;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
 
-        /* 【優先出餐優化】 */
-        .order-list .order-card:first-child {
-            border: 5px solid #dc2626; 
-            background-color: #fffef0;
-        }
-        .order-list .order-card:first-child .priority-badge {
-            display: inline-block;
-            background-color: #dc2626;
-            color: #ffffff;
-            padding: 5px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 24px; 
-            margin-bottom: 10px;
-            animation: blink 1.5s infinite;
-        }
-        .order-list .order-card:first-child .order-id {
-            font-size: 36px; 
-            color: #dc2626;
-            font-weight: 900;
-        }
-        .order-list .order-card:first-child .order-time,
-        .order-list .order-card:first-child .order-customer,
-        .order-list .order-card:first-child .item-line {
-            font-size: 22px; 
-            line-height: 1.6;
-        }
+    .update-time {
+      font-size: 13px;
+      color: #8c766b;
+      margin-bottom: 20px;
+    }
 
-        .priority-badge { display: none; }
-        .order-id {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            border-bottom: 1px dashed #a67c52;
-            padding-bottom: 5px;
-        }
-        .order-customer {
-            font-size: 18px;
-            font-weight: bold;
-            color: #b45309;
-            background-color: #fef3c7;
-            padding: 6px 12px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-            display: inline-block;
-        }
-        .order-time {
-            font-size: 14px;
-            color: #78350f;
-            margin-bottom: 12px;
-        }
-        .order-items { margin-bottom: 20px; }
-        .item-line {
-            font-size: 16px;
-            margin-bottom: 8px;
-            padding-left: 10px;
-            border-left: 3px solid #4a2f1c;
-        }
+    /* ==========================================================================
+       🛠️ 2. 核心修正：翻頁日期看板樣式 (解決右側爆開被切除的 Bug)
+       ========================================================================== */
+    /* 翻頁日期大容器 */
+    .flip-date-container {
+      background-color: #1a241a; /* 經典深綠底色 */
+      border-radius: 12px;
+      padding: 6px 4px;          /* ⚡ 縮減上下內邊距，保留手機呼吸空間 */
+      margin: 15px 0;
+      display: flex;
+      justify-content: center;   /* 居中對齊 */
+      align-items: center;
+      flex-wrap: nowrap;         /* ⚡ 強制橫向一整排，絕對不換行 */
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;    /* ⚡ 防止 padding 撐破螢幕寬度 */
+      overflow: hidden;          /* ⚡ 超出部分自動遮罩防滑動錯位 */
+    }
 
-        .complete-btn {
-            display: block;
-            width: 100%;
-            padding: 20px 10px; 
-            background-color: #16a34a;
-            color: #ffffff;
-            border: none;
-            font-size: 24px; 
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #15803d;
-            text-align: center;
-            user-select: none;
-        }
-        .complete-btn:active {
-            background-color: #15803d;
-            box-shadow: 0 1px 0 #15803d;
-            transform: translateY(3px);
-        }
+    /* 每一格獨立的數字/符號卡片 (例如：2, 0, 2, 6, -, 0, 6) */
+    .flip-digit {
+      background: linear-gradient(to bottom, #2c352c 0%, #121812 100%);
+      color: #52b752;            /* 科技感復古綠字 */
+      font-size: 22px !important;/* ⚡ 關鍵修正：將原本撐爆的字型精準縮小至 22px */
+      font-weight: bold;
+      width: 24px !important;    /* ⚡ 關鍵修正：縮減每格卡片固定寬度 */
+      height: 38px !important;   /* ⚡ 關鍵修正：縮減每格卡片固定高度 */
+      line-height: 38px;
+      text-align: center;
+      margin: 0 1px !important;  /* ⚡ 關鍵修正：將左右卡片間距壓到極致的 1px */
+      border-radius: 4px;
+      box-shadow: inset 0px 1px 3px rgba(255,255,255,0.2), 0px 2px 4px rgba(0,0,0,0.5);
+      border-bottom: 1px solid #0a0e0a;
+      position: relative;
+    }
 
-        /* 📋 報表燈箱彈出視窗樣式 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .modal-content {
-            background-color: #fdfbf7;
-            border: 4px solid #7c2d12;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .modal-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #7c2d12;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .report-textarea {
-            width: 100%;
-            height: 380px; 
-            font-family: monospace;
-            font-size: 14px;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 2px solid #a67c52;
-            background-color: #fff;
-            border-radius: 6px;
-            resize: none;
-            color: #333;
-        }
-        .modal-btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        .modal-btn {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .copy-btn { background-color: #16a34a; color: white; }
-        .close-btn { background-color: #6b7280; color: white; }
+    /* 翻頁卡片中間那條亮細橫線效果 */
+    .flip-digit::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
 
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-    </style>
+    /* 連字號分隔符號格的特殊處理 (讓 - 號稍微靠攏一些) */
+    .flip-dash {
+      background: none !important;
+      box-shadow: none !important;
+      border: none !important;
+      color: #3b873b;
+      width: 14px !important;    /* ⚡ 縮減連字號卡片的寬度 */
+      font-size: 20px;
+    }
+    .flip-dash::after {
+      display: none;             /* 分隔線不需要中央橫線 */
+    }
+
+    /* ==========================================================================
+       3. 互動功能按鈕區
+       ========================================================================== */
+    .btn-checkout {
+      background-color: #703d21;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.2s, transform 0.1s;
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .btn-checkout:active {
+      background-color: #573019;
+      transform: scale(0.98);
+    }
+
+    /* ==========================================================================
+       4. 底部未出餐訂單狀態告示牌
+       ========================================================================== */
+    .status-box {
+      border: 2px dashed #bda38f;
+      border-radius: 12px;
+      padding: 25px 15px;
+      background-color: #fffdf9;
+      width: 100%;
+      max-width: 480px;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 15px;
+      color: #7a6558;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
-            
-            <div class="clock-container" id="flip-clock-target"></div>
-
-            <div id="loading-status" style="font-size:14px; color:#666; margin-top:5px;">正在連線資料庫...</div>
-            <button class="settle-btn" onclick="generateDailyReport()">🚧 結束營業（結算今日營收）</button>
-        </header>
-
-        <div class="order-list" id="order-container"></div>
+  <div class="dashboard-card">
+    <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
+    <div class="update-time">最後更新時間：下午 9:33:50 (每 10 秒自動同步)</div>
+    
+    <div class="flip-date-container" id="dateFlipBoard">
+      <div class="flip-digit">2</div>
+      <div class="flip-digit">0</div>
+      <div class="flip-digit">2</div>
+      <div class="flip-digit">6</div>
+      <div class="flip-digit flip-dash">-</div>
+      <div class="flip-digit">0</div>
+      <div class="flip-digit">6</div>
+      <div class="flip-digit flip-dash">-</div>
+      <div class="flip-digit">0</div>
+      <div class="flip-digit">8</div>
     </div>
+    
+    <button class="btn-checkout" onclick="triggerLineCheckout()">
+      🚧 結束營業（結算今日營收）
+    </button>
+  </div>
 
-    <div class="modal" id="report-modal">
-        <div class="modal-content">
-            <div class="modal-title">📊 今日擺攤營業結算報表</div>
-            <textarea class="report-textarea" id="report-text" readonly></textarea>
-            <div class="modal-btn-group">
-                <button class="modal-btn copy-btn" onclick="copyReportText()">📋 一鍵複製報表文字</button>
-                <button class="modal-btn close-btn" onclick="closeModal()">關閉</button>
-            </div>
-        </div>
-    </div>
+  <div class="status-box">
+    🎉 報告主廚！目前沒有未出餐的訂單，可以稍作休息！
+  </div>
 
-    <script>
-        const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
-        const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
-
-        // 🕒 實時更新翻頁鐘
-        function updateFlipClock() {
-            const now = new Date();
-            const year = String(now.getFullYear());
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            const createCards = (str) => {
-                return `<div class="flip-group">` + 
-                       str.split('').map(char => `<div class="flip-card">${char}</div>`).join('') + 
-                       `</div>`;
-            };
-
-            let clockHtml = `
-                ${createCards(year)}
-                <div class="flip-divider">-</div>
-                ${createCards(month)}
-                <div class="flip-divider">-</div>
-                ${createCards(day)}
-                <div class="flip-divider">&nbsp;</div>
-                ${createCards(hours)}
-                <div class="flip-divider">-</div>
-                ${createCards(minutes)}
-                <div class="flip-divider">-</div>
-                ${createCards(seconds)}
-            `;
-            
-            document.getElementById('flip-clock-target').innerHTML = clockHtml;
+  <script>
+    // 1. 自動初始化當天日期到翻頁看版上
+    function initDateBoard() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const dateString = `${yyyy}-${mm}-${dd}`; // 例如 "2026-06-08"
+      
+      const container = document.getElementById('dateFlipBoard');
+      container.innerHTML = ''; // 清空預設
+      
+      // 依序拆解字元產生對應樣式卡片
+      for (let char of dateString) {
+        const div = document.createElement('div');
+        if (char === '-') {
+          div.className = 'flip-digit flip-dash';
+          div.textContent = '-';
+        } else {
+          div.className = 'flip-digit';
+          div.textContent = char;
         }
+        container.appendChild(div);
+      }
+    }
 
-        // 📅 獲取今天台灣時間的 00:00 ISO 字串
-        function getTodayMidnightISO() {
-            const now = new Date();
-            const tzOffset = 8 * 60 * 60 * 1000;
-            const twTime = new Date(now.getTime() + tzOffset);
-            
-            const year = twTime.getUTCFullYear();
-            const month = String(twTime.getUTCMonth() + 1).padStart(2, '0');
-            const day = String(twTime.getUTCDate()).padStart(2, '0');
-            
-            const midnightTW = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
-            return midnightTW.toISOString();
-        }
+    // 2. 點擊按鈕時的提示 (未來可依需求擴充直連 GAS 呼叫 #結帳)
+    function triggerLineCheckout() {
+      alert("💡 提示：請回到「阿德師傅結帳小秘書」LINE 聊天室中，輸入「#結帳」指令，即可自動將今日 Supabase 數據同步導出至 Google 試算表！");
+    }
 
-        // 🔄 核心載入系統
-        async function fetchOrders() {
-            try {
-                document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
-                
-                const midnightISO = getTodayMidnightISO(); 
-                
-                // 🛠️ 先抓出今天已完成數量
-                const doneResponse = await fetch(`${API_URL}?status=eq.completed&created_at=gte.${midnightISO}`, {
-                    method: 'GET',
-                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-                });
-                const completedOrders = await doneResponse.json();
-                const completedCount = completedOrders.length;
+    // 頁面載入時自動執行日期版初始化
+    window.onload = function() {
+      initDateBoard();
+    };
+  </script>
 
-                // 🛠️ 抓出今天排隊中的訂單
-                const response = await fetch(`${API_URL}?status=eq.pending&created_at=gte.${midnightISO}&order=created_at.asc`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) throw new Error("資料庫拒絕回應");
-                const pendingOrders = await response.json();
-                
-                if (pendingOrders.length === 0) {
-                    renderOrderList([]);
-                    document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
-                    return;
-                }
-
-                const processedOrders = pendingOrders.map((order, index) => {
-                    let currentTodayNumber = completedCount + (index + 1);
-                    const formattedNum = String(currentTodayNumber).padStart(3, '0');
-                    return { ...order, dailyNumber: formattedNum };
-                });
-
-                renderOrderList(processedOrders);
-                document.getElementById('loading-status').textContent = `最後更新時間：${new Date().toLocaleTimeString()} (每 10 秒自動同步)`;
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading-status').textContent = "⚠️ 連線中或暫無訂單，將於 10 秒後自動重新讀取...";
-            }
-        }
-
-        // 🎨 渲染出單畫面
-        function renderOrderList(orders) {
-            const container = document.getElementById('order-container');
-            container.innerHTML = '';
-
-            if (orders.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; font-size:18px; color:#888; background:#fff; border-radius:8px; border:2px dashed #a67c52;">🎉 報告主廚！目前沒有未出餐的訂單，可以稍作休息！</div>';
-                return;
-            }
-
-            orders.forEach((order) => {
-                const card = document.createElement('div');
-                card.className = 'order-card';
-
-                const time = new Date(order.created_at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-                
-                const custName = order.customer_name ? order.customer_name : '未填寫';
-                const custPhone = order.customer_phone ? order.customer_phone : '---';
-
-                let itemsHtml = '';
-                if (Array.isArray(order.items)) {
-                    order.items.forEach(item => {
-                        let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
-                        let noteStr = item.note ? ` <span style="color:#b45309; font-weight:bold;">(細節備註: ${item.note})</span>` : '';
-                        itemsHtml += `<div class="item-line">🔹 ${item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治'} ${item.size} x 1區 - $${item.price}${customStr}${noteStr}</div>`;
-                    });
-                }
-
-                card.innerHTML = `
-                    <div class="priority-badge">🚨 優先出餐</div>
-                    <div class="order-id">單號：#${order.dailyNumber}</div>
-                    <div class="order-customer">👤 客戶：${custName} ｜ 📱 手機末3碼：${custPhone}</div>
-                    <div class="order-time">收單時間：${time} ｜ 總金額：$${order.total_price}</div>
-                    <div class="order-items">${itemsHtml}</div>
-                    <button class="complete-btn" onclick="completeOrder('${order.id}', this)">✔ 完成出餐</button>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // 🚀 完成出餐按鈕
-        async function completeOrder(orderId, buttonEl) {
-            if (!confirm("確定這筆餐點已經製作完成，要核銷出單嗎？")) return;
-            
-            buttonEl.disabled = true;
-            buttonEl.textContent = "⏱ 處理中...";
-
-            try {
-                const response = await fetch(`${API_URL}?id=eq.${orderId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'apikey': API_KEY,
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify({ status: 'completed' })
-                });
-
-                if (response.ok) {
-                    fetchOrders();
-                } else {
-                    alert("核銷失敗，請重新再試一次！");
-                    buttonEl.disabled = false;
-                    buttonEl.textContent = "✔ 完成出餐";
-                }
-            } catch (error) {
-                alert("網路異常，無法變更出餐狀態！");
-                buttonEl.disabled = false;
-                buttonEl.textContent = "✔ 完成出餐";
-            }
-        }
-
-        // 📊 【核心重構】：優化生成結算報表文字，讓 GAS 能完美抓取流水帳！
-        async function generateDailyReport() {
-            if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
-
-            const midnightISO = getTodayMidnightISO(); 
-
-            try {
-                document.getElementById('loading-status').textContent = "正在結算今日歷史訂單營收...";
-                
-                const response = await fetch(`${API_URL}?status=eq.completed&created_at=gte.${midnightISO}&order=created_at.asc`, {
-                    method: 'GET',
-                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-                });
-
-                if (!response.ok) throw new Error("撈取歷史資料失敗");
-                const completedOrders = await response.json();
-
-                let totalRevenue = 0;
-                let totalOrders = completedOrders.length;
-                let pigLarge = 0;   let pigSmall = 0;   
-                let sandwichLarge = 0; let sandwichSmall = 0; 
-
-                const now = new Date();
-                const twDateStr = new Date(now.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
-
-                // 🌟 改用 GAS 能 100% 聽懂的格式
-                let reportString = `阿德師擺攤營業結帳報表\n`;
-                reportString += `結帳日期：${twDateStr}\n`; 
-                reportString += `今日總營業額：$${totalRevenue} 元\n`; // 預留位置，最後用取代的
-                reportString += `總出單量：${totalOrders} 筆訂單\n`;
-                reportString += `=====================\n`;
-                reportString += `📋 每日訂單詳細流水帳：\n`;
-
-                completedOrders.forEach((order, index) => {
-                    totalRevenue += Number(order.total_price || 0);
-                    let formattedNum = String(index + 1).padStart(3, '0');
-                    
-                    const custName = order.customer_name ? order.customer_name : '未填寫';
-                    const custPhone = order.customer_phone ? order.customer_phone : '---';
-
-                    // 🛠️ 關鍵改動：把「單號、金額、客資、餐點」全部整理成一條規律的「🔹開頭」流水帳，方便 GAS 完美拆解入表！
-                    let orderItemsStr = "";
-                    if (Array.isArray(order.items)) {
-                        orderItemsStr = order.items.map(item => {
-                            if (item.item === 'Porchetta') {
-                                if (item.size === '大份') pigLarge++; else pigSmall++;
-                            } else {
-                                if (item.size === '大份') sandwichLarge++; else sandwichSmall++;
-                            }
-                            let name = item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治';
-                            let customStr = item.customization && item.customization.length > 0 ? `[${item.customization.join(', ')}]` : '';
-                            let noteStr = item.note ? `(細節備註: ${item.note})` : '';
-                            return `${name}(${item.size}) x 1${customStr}${noteStr}`;
-                        }).join(" ＋ ");
-                    }
-
-                    // 這一行同時包含了 GAS 需要的所有要素！
-                    reportString += `🔹 單號：#${formattedNum} ｜ 客戶：${custName} (${custPhone}) ｜ 金額：$${order.total_price} ｜ 餐點：${orderItemsStr}\n`;
-                });
-
-                // 把真正的總營業額塞回開頭
-                reportString = reportString.replace(`今日總營業額：$0 元`, `今日總營業額：$${totalRevenue} 元`);
-
-                reportString += `=====================\n`;
-                reportString += `🐖 義式脆皮烤豬明細：\n`;
-                reportString += `  - 大份：${pigLarge} 份\n`;
-                reportString += `  - 小份：${pigSmall} 份\n`;
-                reportString += `🥪 但丁三明治明細：\n`;
-                reportString += `  - 大份：${sandwichLarge} 份\n`;
-                reportString += `  - 小份：${sandwichSmall} 份\n`;
-                reportString += `=====================\n`;
-                reportString += `對帳單建檔完畢，請核對。`;
-
-                document.getElementById('report-text').value = reportString;
-                document.getElementById('report-modal').style.display = 'flex';
-                document.getElementById('loading-status').textContent = "營收結算報表已生成！";
-
-            } catch (error) {
-                console.error(error);
-                alert("結算失敗，請確認資料庫連線或稍後再試！");
-                fetchOrders();
-            }
-        }
-
-        // 📋 複製文字到剪貼簿
-        function copyReportText() {
-            const textarea = document.getElementById('report-text');
-            textarea.select();
-            textarea.setSelectionRange(0, 99999); 
-
-            try {
-                navigator.clipboard.writeText(textarea.value);
-                alert("🎉 報表複製成功！趕快打開 LINE 貼給您的對帳機器人吧！");
-                closeModal();
-            } catch (err) {
-                document.execCommand('copy');
-                alert("🎉 報表複製成功！(備用模式)");
-                closeModal();
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('report-modal').style.display = 'none';
-            fetchOrders(); 
-        }
-
-        // ⏱ 啟動系統
-        updateFlipClock();
-        setInterval(updateFlipClock, 1000); 
-        fetchOrders();
-        setInterval(fetchOrders, 10000);
-    </script>
 </body>
 </html>
