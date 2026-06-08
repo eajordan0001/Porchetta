@@ -27,23 +27,65 @@
         }
         h1 { margin: 0; font-size: 24px; }
         
-        /* ✨【全新優化】醒目的實時時鐘外框與字體 */
-        .clock-box {
+        /* ==================================================
+           ✨【全新優化】醒目的復古翻頁鐘樣式 (Flip Clock Style)
+           ================================================== */
+        .clock-container {
+            margin: 20px auto;
+            padding: 15px 25px;
+            background-color: #1a1a1a; /* 深色背景襯托翻頁鐘 */
             border: 4px solid #16a34a; /* 醒目的翠綠色外框 */
-            background-color: #f0fdf4; /* 淡淡的綠色底色，增加對比 */
-            border-radius: 10px;
-            padding: 12px 20px;
-            margin: 15px auto;
-            display: inline-block; /* 讓外框寬度剛好符合時間大小 */
-            box-shadow: 0 0 15px rgba(22, 163, 74, 0.4); /* 霓虹發光感，極度吸睛 */
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px; /* 各群組間距 */
+            box-shadow: 0 0 20px rgba(22, 163, 74, 0.4); /* 綠色發光霓虹感 */
         }
-        #current-time-clock {
-            font-size: 38px; /* 特大字體 */
-            font-weight: 900;
+
+        /* 翻頁卡片群組 (日期、時間、秒數) */
+        .flip-group {
+            display: flex;
+            gap: 3px;
+        }
+
+        /* 單個翻頁數字方塊 */
+        .flip-card {
+            background: linear-gradient(to bottom, #333333 0%, #222222 50%, #111111 50%, #000000 100%);
             color: #16a34a; /* 綠色高對比字體 */
-            font-family: monospace; /* 使用等寬字體，防止秒數跳動時文字抖動 */
-            letter-spacing: 2px;
-            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 34px;
+            font-weight: 900;
+            width: 26px;
+            height: 48px;
+            line-height: 48px;
+            text-align: center;
+            border-radius: 6px;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+            border: 1px solid #444;
+        }
+
+        /* 翻頁鐘中間那條經典的橫切線效果 */
+        .flip-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background-color: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* 分隔號方塊 (橫線與空格) */
+        .flip-divider {
+            font-size: 28px;
+            font-weight: 900;
+            color: #16a34a;
+            align-self: center;
+            padding: 0 2px;
+            font-family: monospace;
         }
 
         /* 🚧 收攤按鈕樣式 */
@@ -223,9 +265,8 @@
         <header>
             <h1>👨‍🍳 阿德師傅餐車 - 現場出單明細</h1>
             
-            <div class="clock-box">
-                <div id="current-time-clock">0000-00-00 00-00-00</div>
-            </div>
+            <div class="clock-container" id="flip-clock-target">
+                </div>
 
             <div id="loading-status" style="font-size:14px; color:#666; margin-top:5px;">正在連線資料庫...</div>
             <button class="settle-btn" onclick="generateDailyReport()">🚧 結束營業（結算今日營收）</button>
@@ -250,18 +291,39 @@
         const API_URL = 'https://xylwvlidaidtkvnivnrr.supabase.co/rest/v1/orders';
         const API_KEY = 'sb_publishable_RHa_jkWf5jWrxu6v8wo29A_8_tGr5Ar';
 
-        // 🕒 實時更新時間（每秒跑一次）格式：YYYY-MM-DD HH-MM-SS
-        function updateClock() {
+        // 🕒 實時更新翻頁鐘 (格式精準對齊：YYYY-MM-DD HH-MM-SS)
+        function updateFlipClock() {
             const now = new Date();
-            const year = now.getFullYear();
+            const year = String(now.getFullYear());
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            const timeString = `${year}-${month}-${day} ${hours}-${minutes}-${seconds}`;
-            document.getElementById('current-time-clock').textContent = timeString;
+            // 幫每個字元建立獨立的翻頁 HTML 卡片樣式
+            const createCards = (str) => {
+                return `<div class="flip-group">` + 
+                       str.split('').map(char => `<div class="flip-card">${char}</div>`).join('') + 
+                       `</div>`;
+            };
+
+            // 完美的復古翻頁外觀結構組合
+            let clockHtml = `
+                ${createCards(year)}
+                <div class="flip-divider">-</div>
+                ${createCards(month)}
+                <div class="flip-divider">-</div>
+                ${createCards(day)}
+                <div class="flip-divider">&nbsp;</div>
+                ${createCards(hours)}
+                <div class="flip-divider">-</div>
+                ${createCards(minutes)}
+                <div class="flip-divider">-</div>
+                ${createCards(seconds)}
+            `;
+            
+            document.getElementById('flip-clock-target').innerHTML = clockHtml;
         }
 
         // 🔄 核心載入系統
@@ -372,7 +434,7 @@
             }
         }
 
-        // 📊 生成結算報表文字（格式調整為機器人最愛拆解的乾淨結構）
+        // 📊 生成結算報表文字
         async function generateDailyReport() {
             if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
 
@@ -465,8 +527,8 @@
         }
 
         // ⏱ 啟動系統
-        updateClock();
-        setInterval(updateClock, 1000); // 確保時鐘每秒跳動
+        updateFlipClock();
+        setInterval(updateFlipClock, 1000); // 每秒鐘動態刷新翻頁卡片
         fetchOrders();
         setInterval(fetchOrders, 10000);
     </script>
