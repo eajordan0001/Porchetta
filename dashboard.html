@@ -208,7 +208,7 @@
         }
         .report-textarea {
             width: 100%;
-            height: 250px;
+            height: 350px; /* 微調高度以容納更多內容 */
             font-family: monospace;
             font-size: 14px;
             padding: 10px;
@@ -317,22 +317,22 @@
             return midnightTW.toISOString();
         }
 
-        // 🔄 核心載入系統 (徹底修復單號不一致問題)
+        // 🔄 核心載入系統 (對齊計數號碼)
         async function fetchOrders() {
             try {
                 document.getElementById('loading-status').textContent = "正在即時更新訂單中...";
                 
                 const midnightISO = getTodayMidnightISO(); 
                 
-                // 🛠️ 步驟 1：先抓出今天「已完成（completed）」的訂單數量
+                // 🛠️ 先抓出今天「已完成（completed）」的訂單數量
                 const doneResponse = await fetch(`${API_URL}?status=eq.completed&created_at=gte.${midnightISO}`, {
                     method: 'GET',
                     headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
                 });
                 const completedOrders = await doneResponse.json();
-                const completedCount = completedOrders.length; // 今日已核銷單數
+                const completedCount = completedOrders.length;
 
-                // 🛠️ 步驟 2：抓出今天「未出餐（pending）」的排隊訂單
+                // 🛠️ 抓出今天「未出餐（pending）」的排隊訂單
                 const response = await fetch(`${API_URL}?status=eq.pending&created_at=gte.${midnightISO}&order=created_at.asc`, {
                     method: 'GET',
                     headers: {
@@ -351,7 +351,7 @@
                     return;
                 }
 
-                // 🛠️ 步驟 3：捨棄原本 id % 100 的邏輯，改用「已完成數 + 排隊索引」動態生成單號
+                // 動態流水號轉換邏輯
                 const processedOrders = pendingOrders.map((order, index) => {
                     let currentTodayNumber = completedCount + (index + 1);
                     const formattedNum = String(currentTodayNumber).padStart(3, '0');
@@ -437,7 +437,7 @@
             }
         }
 
-        // 📊 生成結算報表文字
+        // 📊 生成分單明細版結算報表文字
         async function generateDailyReport() {
             if (!confirm("確定要結束目前的擺攤營業並進行營收結算嗎？")) return;
 
@@ -459,31 +459,51 @@
                 let pigLarge = 0;   let pigSmall = 0;   
                 let sandwichLarge = 0; let sandwichSmall = 0; 
 
-                completedOrders.forEach(order => {
-                    totalRevenue += Number(order.total_price || 0);
-                    if (Array.isArray(order.items)) {
-                        order.items.forEach(item => {
-                            if (item.item === 'Porchetta') {
-                                if (item.size === '大份') pigLarge++; else pigSmall++;
-                            } else {
-                                if (item.size === '大份') sandwichLarge++; else sandwichSmall++;
-                            }
-                        });
-                    }
-                });
-
                 const now = new Date();
                 const twDateStr = new Date(now.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
                 let reportString = `阿德師擺攤營業結帳報表\n`;
                 reportString += `日期：${twDateStr}\n`; 
-                reportString += `總金額：${totalRevenue}\n`; 
-                reportString += `總單數：${totalOrders}\n`;
                 reportString += `=====================\n`;
-                reportString += `🐖 義式脆皮烤豬\n`;
+                reportString += `📋 今日出單明細：\n\n`;
+
+                // 🔄 ✨【核心優化】：循環今日每一筆已完成訂單，依照流水單號列出明細與備註
+                completedOrders.forEach((order, index) => {
+                    totalRevenue += Number(order.total_price || 0);
+                    
+                    // 根據索引自動計算出對齊的 3 位數單號 (e.g., #001)
+                    let formattedNum = String(index + 1).padStart(3, '0');
+                    reportString += `單號：#${formattedNum} ($${order.total_price})\n`;
+
+                    if (Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            // 計算總數量統計
+                            if (item.item === 'Porchetta') {
+                                if (item.size === '大份') pigLarge++; else pigSmall++;
+                            } else {
+                                if (item.size === '大份') sandwichLarge++; else sandwichSmall++;
+                            }
+
+                            // 拼湊單筆餐點明細文字
+                            let name = item.item === 'Porchetta' ? '義式脆皮烤豬' : '但丁三明治';
+                            let customStr = item.customization && item.customization.length > 0 ? ` [${item.customization.join(', ')}]` : '';
+                            let noteStr = item.note ? ` (備註: ${item.note})` : '';
+                            
+                            reportString += ` 🔹 ${name} (${item.size})${customStr}${noteStr}\n`;
+                        });
+                    }
+                    reportString += `---------------------\n`;
+                });
+
+                // 📊 報表最下方保留加總與統計欄位
+                reportString += `=====================\n`;
+                reportString += `總金額：$${totalRevenue}\n`; 
+                reportString += `總單數：${totalOrders} 單\n`;
+                reportString += `=====================\n`;
+                reportString += `🐖 義式脆皮烤豬 總計\n`;
                 reportString += `   - 大份：${pigLarge}\n`;
                 reportString += `   - 小份：${pigSmall}\n`;
-                reportString += `🥪 但丁三明治\n`;
+                reportString += `🥪 但丁三明治 總計\n`;
                 reportString += `   - 大份：${sandwichLarge}\n`;
                 reportString += `   - 小份：${sandwichSmall}\n`;
                 reportString += `=====================\n`;
